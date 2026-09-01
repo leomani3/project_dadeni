@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 255e73c5b0e0bb641b23e8f2aff8a99e, type: 3}
+  m_Name: DefaultTextConfig
+  m_EditorClassIdentifier: Assembly-CSharp::FloatingTextConfig
+  color: {r: 1, g: 1, b: 1, a: 1}
+  font: {fileID: 11400000, guid: 365157e8c2d068f4ca14c02de4468075, type: 2}
+  fontSize: 4
+  spawnDuration: 0.3
+  enableScaleIn: 1
+  scaleInEase: 18
+  enableFadeIn: 1
+  stayDuration: 0.1
+  despawnDuration: 0.15
+  enableScaleOut: 0
+  enableFadeOut: 1
+  YOffset: 1
+  randomXMovement: 1
+  minMaxXOffset: {x: -0.5, y: 0.5}

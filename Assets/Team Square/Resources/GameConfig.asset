@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49e636d1db3887f4083b6e440cd10f73, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  debuggingSettings:
+    developmentBuild: 0
+  cheatSettings:
+    preventSave: 0
+    startResetData: 1
+    noFTUE: 0
+    noCurrencyRequired: 1
+    noMenu: 0
+    disableBootStrapper: 0
+  gameSettings:
+    isDemo: 0
+    resetedCurrency: []
+    resetCurrenciesNeeded: []
+    delayBeforeCanValidateOnClick: 0.2

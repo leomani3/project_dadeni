@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e3b79a171d6b0ce4ea69a501148e8c24
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 293726
+  packageName: Auto Radial Layout
+  packageVersion: 1.2.1
+  assetPath: Assets/GIGA Softworks/Auto Radial Layout/Examples/MergingNode/RadialLayoutExample_MergingNode.cs
+  uploadId: 789276

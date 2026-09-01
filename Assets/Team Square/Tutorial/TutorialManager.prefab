@@ -1,0 +1,201 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3532339611562307178
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7300214662682877740}
+  - component: {fileID: 5906505305001626940}
+  m_Layer: 0
+  m_Name: TutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7300214662682877740
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3532339611562307178}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1228.1516, y: 430.14905, z: -10.122671}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5906505305001626940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3532339611562307178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7d502a17bd2403478f9d1d2a4e178c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_tutorialSteps:
+  - enabled: 1
+    stepID: Highlight Hut
+    triggerEvent: 0
+    validateEvent: 5
+    allowRetroActiveValidation: 1
+    tutorialTarget: 0
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 2
+    useHighlight: 1
+    highlightModal: 0
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 0.75
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 0
+    title: 
+    text: 
+    offset: {x: 0, y: 0, z: 0}
+    freezeTime: 0
+    freezeCameraMovements: 0
+  - enabled: 0
+    stepID: Explain Objective
+    triggerEvent: 1
+    validateEvent: 5
+    allowRetroActiveValidation: 0
+    tutorialTarget: 0
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 0
+    useHighlight: 1
+    highlightModal: 1
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 1.5
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 1
+    title: Objective
+    text: Produce any kind of resource to reach the objective !
+    offset: {x: 0, y: -250, z: 0}
+    freezeTime: 1
+    freezeCameraMovements: 0
+  - enabled: 0
+    stepID: Explain stars
+    triggerEvent: 2
+    validateEvent: 5
+    allowRetroActiveValidation: 0
+    tutorialTarget: 0
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 0
+    useHighlight: 1
+    highlightModal: 1
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 0.75
+    highlightOffset: {x: 20, y: 0, z: 0}
+    useTextBubble: 1
+    title: Stars
+    text: Placing any object rewards you with Stars. Get as much as possible. It
+      will be useful later to upgrade !
+    offset: {x: 300, y: 0, z: 0}
+    freezeTime: 1
+    freezeCameraMovements: 0
+  - enabled: 1
+    stepID: Explain production
+    triggerEvent: 2
+    validateEvent: 7
+    allowRetroActiveValidation: 1
+    tutorialTarget: 1
+    rectTarget: {fileID: 0}
+    tileObjectID: 5
+    delay: 0
+    useHighlight: 1
+    highlightModal: 0
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 1
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 1
+    title: Click
+    text: You can click on your buildings to speed up their production.
+    offset: {x: -15, y: 0, z: 0}
+    freezeTime: 0
+    freezeCameraMovements: 1
+  - enabled: 1
+    stepID: Claim Tile
+    triggerEvent: 9
+    validateEvent: 10
+    allowRetroActiveValidation: 1
+    tutorialTarget: 2
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 0.2
+    useHighlight: 1
+    highlightModal: 0
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 0.8
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 1
+    title: Claim Tile
+    text: 'You can extand your island!
+
+      Click on the costline.'
+    offset: {x: -15, y: 0, z: 0}
+    freezeTime: 0
+    freezeCameraMovements: 1
+  - enabled: 1
+    stepID: Explain recap
+    triggerEvent: 8
+    validateEvent: 11
+    allowRetroActiveValidation: 0
+    tutorialTarget: 0
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 1
+    useHighlight: 1
+    highlightModal: 0
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 1
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 1
+    title: Farewells
+    text: 'You gathered a lot of stars completing the quest!
+
+      You can spend
+      them for upgrades, but you have to say farewell to your town.'
+    offset: {x: -15, y: 15, z: 0}
+    freezeTime: 0
+    freezeCameraMovements: 0
+  - enabled: 1
+    stepID: Camera
+    triggerEvent: 1
+    validateEvent: 12
+    allowRetroActiveValidation: 0
+    tutorialTarget: 0
+    rectTarget: {fileID: 0}
+    tileObjectID: 0
+    delay: 0
+    useHighlight: 0
+    highlightModal: 0
+    highlightDespawnOnComplete: 0
+    highlightFinalSize: 0
+    highlightOffset: {x: 0, y: 0, z: 0}
+    useTextBubble: 1
+    title: Camera
+    text: 'You can zoom, move and rotate the camera:
+
+      <sprite="mouse_scroll"
+      name="mouse_scroll"> Zoom
+
+      <sprite="mouse-middle-move" name="mouse-middle-move">
+      Move
+
+      <sprite="mouse-right-move" name="mouse-right-move"> Rotation'
+    offset: {x: 0, y: 0, z: 0}
+    freezeTime: 0
+    freezeCameraMovements: 0
