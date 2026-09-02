@@ -12,5 +12,6 @@ namespace Stats
         Cooldown = 12,
         Size = 13,
         Repetition = 14,
+        MovementPoints = 15,
     }
 }

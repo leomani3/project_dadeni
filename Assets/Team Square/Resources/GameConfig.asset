@@ -19,7 +19,7 @@ MonoBehaviour:
     startResetData: 1
     noFTUE: 0
     noCurrencyRequired: 1
-    noMenu: 0
+    noMenu: 1
     disableBootStrapper: 0
   gameSettings:
     isDemo: 0

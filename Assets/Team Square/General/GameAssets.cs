@@ -1,3 +1,4 @@
+using Deckbuilder.Cards;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Utils;
@@ -20,6 +21,8 @@ public class GameAssets : ScriptableObject
 
     [AssetList(Path = "_GameAssets/Objects/Currencies/")]
     public CurrencyAsset[] currencyAssets;
+
+    public CardActionDefinition[] cardActionDefinitions;
 
     // [AssetList(Path = "_GameAssets/Stats/")]
     // public StatData[] statData;

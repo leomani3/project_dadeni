@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ae80819850f8de409784797a8236ca5, type: 3}
   m_Name: GameAssets
   m_EditorClassIdentifier: 
-  currencyAssets:
-  - {fileID: 11400000, guid: f0d2986121d34fa4297808a1288d72d5, type: 2}
-  statData:
-  - {fileID: 11400000, guid: 5e3ca7c8bf72201478c1ef5d45d1ea19, type: 2}
-  - {fileID: 11400000, guid: 3b6f926c759ff3f49ab03b6cae0dbe79, type: 2}
+  currencyAssets: []
+  cardActionDefinitions:
+  - {fileID: 11400000, guid: 5c772736f36f76724a56f87d84c9269a, type: 2}
+  - {fileID: 11400000, guid: e8c4ca5f22b280948cb3aaf72e59bab1, type: 2}
+  - {fileID: 11400000, guid: 39469b74badc6b3f4566e28307fd6d41, type: 2}
+  - {fileID: 11400000, guid: 9c5309621d979ca65739c5fe6e95b999, type: 2}

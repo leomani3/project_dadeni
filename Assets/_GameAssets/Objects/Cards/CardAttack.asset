@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632f287d3ec204d9b588067fb73a6eed, type: 3}
+  m_Name: CardAttack
+  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Cards.CardConfig
+  m_id: card.attack
+  m_title: Attack
+  m_illustration: {fileID: 0}
+  m_targetZone:
+    m_shape: 2
+    m_minSize: 0
+    m_size: 5
+  m_requiresLineOfSight: 1
+  m_effectZone:
+    m_shape: 1
+    m_minSize: 0
+    m_size: 2
+  m_castAnimation: {fileID: 7400000, guid: 8bb5f980ab0faa944b787b776aa0c925, type: 2}
+  m_actions:
+  - rid: 4862471916181520472
+  references:
+    version: 2
+    RefIds:
+    - rid: 4862471916181520472
+      type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+      data:
+        m_damage: 10
