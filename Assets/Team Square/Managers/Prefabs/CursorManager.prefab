@@ -44,3 +44,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83408cdf077822e468117fbbad95ac92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CursorManager
+  m_normalTexture: {fileID: 2800000, guid: 2c51ae461672483c8b6abdf1494c3b2d, type: 3}
+  m_normalHotspot: {x: 3, y: 3}
+  m_combatTexture: {fileID: 2800000, guid: 1065e1b1bc504d27972095ccac8f9e0e, type: 3}
+  m_combatHotspot: {x: 24, y: 25}
+  m_handTexture: {fileID: 2800000, guid: 5bdde368edd64a5ca7976e19505d76e9, type: 3}
+  m_handHotspot: {x: 19, y: 4}
+  m_hoverLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_hoverDistance: 500
+

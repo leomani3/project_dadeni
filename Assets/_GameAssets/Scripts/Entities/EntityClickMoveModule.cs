@@ -8,6 +8,7 @@ using Utils;
 public class EntityClickMoveModule : EntityModule
 {
     private const float RotationLerpSpeed = 20f;
+    private const float MovingVelocityThreshold = 0.1f;
 
     [SerializeField] private Rigidbody m_rigidbody;
     [SerializeField] private LayerMask m_groundLayerMask = ~0;
@@ -83,7 +84,19 @@ public class EntityClickMoveModule : EntityModule
         if (Owner == null || m_rigidbody == null)
             return;
 
+        UpdateLocomotionAnimation();
         AdvanceTowardsDestination();
+    }
+
+    private void UpdateLocomotionAnimation()
+    {
+        if (m_animationModule == null)
+            return;
+
+        Vector3 _horizontalVelocity = m_rigidbody.linearVelocity;
+        _horizontalVelocity.y = 0f;
+
+        m_animationModule.SetLocomotionSpeed(_horizontalVelocity.magnitude > MovingVelocityThreshold ? 1f : 0f);
     }
 
     private void ReadMoveInput()
@@ -140,9 +153,6 @@ public class EntityClickMoveModule : EntityModule
             if (m_hasDestination)
                 StopMoving();
 
-            if (m_animationModule != null)
-                m_animationModule.SetLocomotionSpeed(0f);
-
             return;
         }
 
@@ -151,9 +161,6 @@ public class EntityClickMoveModule : EntityModule
 
         m_rigidbody.linearVelocity = new Vector3(_direction.x * _speed, m_rigidbody.linearVelocity.y, _direction.z * _speed);
         m_rigidbody.MoveRotation(Quaternion.Slerp(m_rigidbody.rotation, Quaternion.LookRotation(_direction), Time.fixedDeltaTime * RotationLerpSpeed));
-
-        if (m_animationModule != null)
-            m_animationModule.SetLocomotionSpeed(1f);
     }
 
     private float GetMoveSpeed()

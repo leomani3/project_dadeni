@@ -128,7 +128,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_canvases:
     values: []
-  m_defaultCanvas: {fileID: 3418806223014593260}
+  m_defaultCanvas: {fileID: 0}
 --- !u!1001 &3573241197026858546
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -226,17 +226,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cce4168897c1dbc4996a036d2984ae95, type: 3}
---- !u!114 &3418806223014593260 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2226108396203791582, guid: cce4168897c1dbc4996a036d2984ae95, type: 3}
-  m_PrefabInstance: {fileID: 3573241197026858546}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9744f92879b0f7545a59511bebc11a77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MenuCanvas
 --- !u!224 &7429661385362077820 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6236859061558750798, guid: cce4168897c1dbc4996a036d2984ae95, type: 3}
