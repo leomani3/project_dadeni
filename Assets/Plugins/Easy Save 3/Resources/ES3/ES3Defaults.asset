@@ -49,7 +49,6 @@ MonoBehaviour:
     - MPUIKit
     - MyBox
     - ParticleImage
-    - ToonyColorsPro.Runtime
     - VInspector
     showAdvancedSettings: 0
   addMgrToSceneAutomatically: 0
