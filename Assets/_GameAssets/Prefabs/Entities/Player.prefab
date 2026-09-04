@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 2000000000008888888}
   - component: {fileID: 2000000000009999999}
   - component: {fileID: 2000000000011111110}
+  - component: {fileID: 910185953793110241}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -95,7 +96,7 @@ MonoBehaviour:
   _damagePunchElasticity: 0.5
   _damageSound: 0
   _deathSound: 0
-  _deathAnimationState:
+  _deathAnimationState: 
   _despawnDelayAfterDeath: 0.5
   _maxHealthFallbackWithoutStatModule: 100
 --- !u!114 &2000000000006666666
@@ -150,6 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityAnimationModule
   m_animator: {fileID: 2000000000017777776}
+  m_speedDamping: 0.05
 --- !u!114 &2000000000011111110
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,6 +176,22 @@ MonoBehaviour:
   m_targetZoneColor: {r: 0, g: 0.5, b: 1, a: 0.5}
   m_targetZoneBlockedColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.4}
   m_effectZoneColor: {r: 1, g: 0.5, b: 0, a: 0.6}
+--- !u!114 &910185953793110241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e7f1a9b2d84c3e9a6f0b5d8c1e2a7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityClickMoveModule
+  m_groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  m_fallbackMoveSpeed: 40
 --- !u!1 &2000000000012222221
 GameObject:
   m_ObjectHideFlags: 0
@@ -355,7 +373,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.3, z: 0.5}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 0
-  m_Children:
+  m_Children: []
   m_Father: {fileID: 2000000000013333332}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2000000000022222220

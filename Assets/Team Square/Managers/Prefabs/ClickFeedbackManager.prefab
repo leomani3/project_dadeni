@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &945541354660285705
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3884467085100955657}
+  - component: {fileID: 6426276697707620658}
+  m_Layer: 0
+  m_Name: ClickFeedbackManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3884467085100955657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945541354660285705}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6426276697707620658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945541354660285705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57d49db203ae3de4eaa12c99f6ed6d65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClickFeedbackManager
+  m_groundOffset: 0.03
+  m_maxSimultaneousFX: 8
+  m_moveSettings:
+    color: {r: 0, g: 0.84774685, b: 1, a: 1}
+    duration: 0.3
+    ease: 9
+    startRadius: 0.4
+    endRadius: 0.28
+    lineWidth: 0.04
+    opaqueRatio: 0.35
+    useChevrons: 1
+    chevronCount: 4
+    chevronSize: 0.1
+    chevronAngleOffset: 45
+    chevronStartRadiusScale: 1
+    chevronEndRadiusScale: 0.2
+    usePulseRing: 1
+    pulseEndRadiusScale: 1.7
+    pulseWidthScale: 0.6
+    pulseAlphaScale: 0.45

@@ -17,6 +17,7 @@ public class Entity : MonoBehaviour, IPoolable
     [SerializeField] private string _staggerVariationAnimatorParameter = "StaggerVariation";
 
     private readonly Dictionary<Type, EntityModule> _modulesByType = new Dictionary<Type, EntityModule>();
+    private bool _modulesInitialized;
     private bool _isStaggered;
     private float _staggerEndTime;
     private Coroutine _staggerCoroutine;
@@ -59,6 +60,8 @@ public class Entity : MonoBehaviour, IPoolable
     {
         foreach (var module in _modulesByType.Values.Distinct())
             module.Cleanup();
+
+        _modulesInitialized = false;
     }
 
     public void Despawn()
@@ -110,6 +113,12 @@ public class Entity : MonoBehaviour, IPoolable
         _knockUpCoroutine = StartCoroutine(RaiseModelWhileStaggered(duration));
     }
 
+    private void Awake()
+    {
+        InitializeModules();
+        RegisterInEntityManager();
+    }
+
     private void OnEnable()
     {
         ResetStaggerState();
@@ -117,6 +126,10 @@ public class Entity : MonoBehaviour, IPoolable
 
     private void InitializeModules()
     {
+        if (_modulesInitialized) return;
+
+        _modulesInitialized = true;
+
         var modules = GetComponents<EntityModule>();
         foreach (var module in modules)
         {
