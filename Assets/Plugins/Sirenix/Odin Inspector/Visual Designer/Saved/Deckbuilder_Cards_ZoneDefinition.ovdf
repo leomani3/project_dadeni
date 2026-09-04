@@ -1,0 +1,28 @@
+OVDF v1.1
+Deckbuilder.Cards.ZoneDefinition, Assembly-CSharp
+
+# $55JWpFs4GWwSDLezQGj6Sa
+Position: $root:3
++ [Sirenix.OdinInspector.HorizontalGroupAttribute]
+	MarginRight = 0
+	PaddingLeft = 0
+	Gap = 3
+
+# m_shape
+Position: $55JWpFs4GWwSDLezQGj6Sa:0
++ [Sirenix.OdinInspector.HideLabelAttribute]
+
+# m_minSize
+Position: $55JWpFs4GWwSDLezQGj6Sa:1
+
+# m_size
+Position: $55JWpFs4GWwSDLezQGj6Sa:2
+
+# m_minRange
+Position: $55JWpFs4GWwSDLezQGj6Sa:1
+
+# m_maxRange
+Position: $55JWpFs4GWwSDLezQGj6Sa:2
+
+# m_range
+Position: $55JWpFs4GWwSDLezQGj6Sa:1

@@ -8,11 +8,10 @@ namespace Deckbuilder.Cards
     public class ZoneDefinition
     {
         [SerializeField] private GridShape m_shape;
-        [SerializeField, Min(0)] private int m_minSize;
-        [SerializeField, Min(1)] private int m_size = 1;
+        [SerializeField] private Vector2Int m_range = new(0, 1);
 
         public GridShape Shape => m_shape;
-        public int Size => m_size;
-        public int MinSize => Mathf.Min(m_minSize, Mathf.Max(m_size - 1, 0));
+        public int MaxRange => Mathf.Max(m_range.y, 1);
+        public int MinRange => Mathf.Clamp(m_range.x, 0, Mathf.Max(MaxRange - 1, 0));
     }
 }

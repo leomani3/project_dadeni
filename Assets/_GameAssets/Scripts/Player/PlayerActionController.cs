@@ -135,7 +135,7 @@ namespace Deckbuilder.Player
                 return;
             }
 
-            foreach (GridCell _cell in GetCellsInZone(_entityCell.Coordinate, m_testCard.TargetZone.Shape, m_testCard.TargetZone.Size, m_testCard.TargetZone.MinSize))
+            foreach (GridCell _cell in GetCellsInZone(_entityCell.Coordinate, m_testCard.TargetZone.Shape, m_testCard.TargetZone.MaxRange, m_testCard.TargetZone.MinRange))
             {
                 bool _hasLineOfSight = !m_testCard.RequiresLineOfSight
                     || GridManager.Instance.HasLineOfSight(_entityCell, _cell, out GridCell _blockingCell, _entity);
@@ -147,7 +147,7 @@ namespace Deckbuilder.Player
             if (m_hoveredCell == null || !CardExecutor.CanTarget(m_testCard, _entity, m_hoveredCell))
                 return;
 
-            foreach (GridCell _cell in GetCellsInZone(m_hoveredCell.Coordinate, m_testCard.EffectZone.Shape, m_testCard.EffectZone.Size, m_testCard.EffectZone.MinSize))
+            foreach (GridCell _cell in GetCellsInZone(m_hoveredCell.Coordinate, m_testCard.EffectZone.Shape, m_testCard.EffectZone.MaxRange, m_testCard.EffectZone.MinRange))
                 CellHighlightManager.Instance.Highlight(_cell, HighlightLayer.EffectZone, m_effectZoneColor);
 
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)

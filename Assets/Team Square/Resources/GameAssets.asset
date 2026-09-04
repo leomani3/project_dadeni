@@ -13,8 +13,3 @@ MonoBehaviour:
   m_Name: GameAssets
   m_EditorClassIdentifier: 
   currencyAssets: []
-  cardActionDefinitions:
-  - {fileID: 11400000, guid: 5c772736f36f76724a56f87d84c9269a, type: 2}
-  - {fileID: 11400000, guid: e8c4ca5f22b280948cb3aaf72e59bab1, type: 2}
-  - {fileID: 11400000, guid: 39469b74badc6b3f4566e28307fd6d41, type: 2}
-  - {fileID: 11400000, guid: 9c5309621d979ca65739c5fe6e95b999, type: 2}

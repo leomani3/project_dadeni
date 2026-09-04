@@ -10,8 +10,18 @@ namespace Deckbuilder.Cards.Actions
 
         public Entity EntityPrefab => m_entityPrefab;
 
-        public override Type DefinitionType => typeof(SummonActionDefinition);
+        public override void Execute(CardActionContext _context)
+        {
+            if (_context.TargetCell.IsOccupied)
+            {
+                Debug.LogWarning("Cannot summon, target cell is already occupied.");
+                return;
+            }
 
-        protected override float Magnitude => 1f;
+            if (CombatManager.Instance == null)
+                return;
+
+            CombatManager.Instance.SpawnEntity(m_entityPrefab, _context.TargetCell);
+        }
     }
 }

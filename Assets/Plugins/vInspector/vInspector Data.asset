@@ -31,3 +31,10 @@ MonoBehaviour:
     isSceneGameObject: 0
     isAsset: 1
     _typeString: GameAssets, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - _obj: {fileID: 11400000, guid: a1511020b13e33f6f288e6585a008032, type: 2}
+    globalId:
+      globalObjectIdString: GlobalObjectId_V1-3-a1511020b13e33f6f288e6585a008032-11400000-0
+    isSceneGameObject: 0
+    isAsset: 1
+    _typeString: Deckbuilder.Cards.CardConfig, Assembly-CSharp, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null

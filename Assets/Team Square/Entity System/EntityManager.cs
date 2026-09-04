@@ -31,7 +31,7 @@ public class EntityManager : Singleton<EntityManager>
 
         if (entity.TryGetModule(out EntityTeamModule teamModule))
         {
-            if (teamModule.Team == Team.Player)
+            if (teamModule.Team == Team.Ally)
                 _player = entity;
             else if (teamModule.Team == Team.Enemy && !_enemies.Contains(entity))
                 _enemies.Add(entity);
@@ -51,7 +51,7 @@ public class EntityManager : Singleton<EntityManager>
 
         if (entity.TryGetModule(out EntityTeamModule teamModule))
         {
-            if (teamModule.Team == Team.Player)
+            if (teamModule.Team == Team.Ally)
                 _player = null;
             else if (teamModule.Team == Team.Enemy)
                 _enemies.Remove(entity);

@@ -1,0 +1,66 @@
+OVDF v1.1
+Deckbuilder.Cards.CardConfig, Assembly-CSharp
+MetaGuid:632f287d3ec204d9b588067fb73a6eed
+
+# $MYayPjQpN76s5FrqVaVLdk
+Position: $root:0
++ [Sirenix.OdinInspector.HorizontalGroupAttribute]
+
+# $VuVKs7cMo2pPSSQBM1iXAX
+Position: $MYayPjQpN76s5FrqVaVLdk:0
++ [Sirenix.OdinInspector.VerticalGroupAttribute]
+
+# $WXBXPJ4jsSMCuSUttCJFZa
+Position: $root:14
++ [Sirenix.OdinInspector.HorizontalGroupAttribute]
+
+# $VqDZ2JPxxe642x91nTcEiJ
+Position: $WXBXPJ4jsSMCuSUttCJFZa:0
++ [Sirenix.OdinInspector.VerticalGroupAttribute]
+	AnimateVisibility = True
+	HideWhenChildrenAreInvisible = True
+
+# $SCyes4m3mcF3VfDyJUzsCP
+Position: $WXBXPJ4jsSMCuSUttCJFZa:1
++ [Sirenix.OdinInspector.VerticalGroupAttribute]
+
+# m_illustration
+Position: $MYayPjQpN76s5FrqVaVLdk:1
++ [Sirenix.OdinInspector.PreviewFieldAttribute]
+	alignment = Right
+	alignmentHasValue = True
+	Height = 150
++ [Sirenix.OdinInspector.HideLabelAttribute]
+
+# m_id
+Position: $VuVKs7cMo2pPSSQBM1iXAX:0
+
+# m_title
+Position: $VuVKs7cMo2pPSSQBM1iXAX:1
+
+# m_targetZone
+Position: $VqDZ2JPxxe642x91nTcEiJ:1
+
+# m_requiresLineOfSight
+Position: $VqDZ2JPxxe642x91nTcEiJ:0
+
+# m_effectZone
+Position: $VqDZ2JPxxe642x91nTcEiJ:2
+
+# m_castAnimation
+Position: $VuVKs7cMo2pPSSQBM1iXAX:2
+
+# m_actions
+Position: $VqDZ2JPxxe642x91nTcEiJ:3
+
+# m_targetZoneUpgraded
+Position: $SCyes4m3mcF3VfDyJUzsCP:1
+
+# m_requiresLineOfSightUpgraded
+Position: $SCyes4m3mcF3VfDyJUzsCP:0
+
+# m_effectZoneUpgraded
+Position: $SCyes4m3mcF3VfDyJUzsCP:2
+
+# m_actionsUpgraded
+Position: $SCyes4m3mcF3VfDyJUzsCP:3
