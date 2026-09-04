@@ -90,6 +90,7 @@ Direct Lean Pool: `LeanPool.Spawn(prefab, ...)` / `LeanPool.Despawn(this)`, with
 - Functions and variable names should make what they're about obvious
 - Never write any comment
 - Remove every Odin attributes
+- Avoid GetComponent in awake as it hides the responsability of getting the component. Always serialize what need to be there and use [RequireComponent], [Required] and Reset() to help with getting it
 
 ## Known hazards
 

@@ -2,14 +2,16 @@ using Stats;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using Utils;
 
+[RequireComponent(typeof(Rigidbody))]
 public class EntityClickMoveModule : EntityModule
 {
     private const float RotationLerpSpeed = 20f;
 
+    [SerializeField] private Rigidbody m_rigidbody;
     [SerializeField] private LayerMask m_groundLayerMask = ~0;
     [SerializeField] private float m_fallbackMoveSpeed = 4f;
-    [SerializeField] private bool m_playClickFeedback = true;
 
     private EntityStatModule m_statModule;
     private EntityAnimationModule m_animationModule;
@@ -26,7 +28,16 @@ public class EntityClickMoveModule : EntityModule
         Owner.TryGetModule(out m_statModule);
         Owner.TryGetModule(out m_animationModule);
 
-        m_destination = transform.position;
+        if (m_rigidbody == null)
+        {
+            this.LogError("No Rigidbody assigned, the character will not move nor collide with anything.");
+            return;
+        }
+
+        m_rigidbody.freezeRotation = true;
+        m_rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+
+        m_destination = m_rigidbody.position;
         m_hasDestination = false;
     }
 
@@ -34,26 +45,44 @@ public class EntityClickMoveModule : EntityModule
     {
         base.Cleanup();
 
-        m_hasDestination = false;
+        StopMoving();
     }
 
     public void MoveTo(Vector3 _worldPosition)
     {
-        m_destination = new Vector3(_worldPosition.x, transform.position.y, _worldPosition.z);
+        if (m_rigidbody == null)
+            return;
+
+        m_destination = new Vector3(_worldPosition.x, m_rigidbody.position.y, _worldPosition.z);
         m_hasDestination = true;
     }
 
     public void StopMoving()
     {
         m_hasDestination = false;
+
+        if (m_rigidbody != null)
+            m_rigidbody.linearVelocity = new Vector3(0f, m_rigidbody.linearVelocity.y, 0f);
+    }
+
+    private void Reset()
+    {
+        m_rigidbody = GetComponent<Rigidbody>();
     }
 
     private void Update()
     {
-        if (Owner == null)
+        if (Owner == null || m_rigidbody == null)
             return;
 
         ReadMoveInput();
+    }
+
+    private void FixedUpdate()
+    {
+        if (Owner == null || m_rigidbody == null)
+            return;
+
         AdvanceTowardsDestination();
     }
 
@@ -70,7 +99,7 @@ public class EntityClickMoveModule : EntityModule
 
         MoveTo(_groundPoint);
 
-        if (m_playClickFeedback && Mouse.current.leftButton.wasPressedThisFrame)
+        if (Mouse.current.leftButton.wasPressedThisFrame)
             PlayClickFeedback(_groundPoint);
     }
 
@@ -101,14 +130,15 @@ public class EntityClickMoveModule : EntityModule
 
     private void AdvanceTowardsDestination()
     {
-        Vector3 _toDestination = m_destination - transform.position;
+        Vector3 _toDestination = m_destination - m_rigidbody.position;
         _toDestination.y = 0f;
 
         float _remainingDistance = _toDestination.magnitude;
 
-        if (!m_hasDestination || _remainingDistance <= 0.0001f)
+        if (!m_hasDestination || _remainingDistance <= 0.01f)
         {
-            m_hasDestination = false;
+            if (m_hasDestination)
+                StopMoving();
 
             if (m_animationModule != null)
                 m_animationModule.SetLocomotionSpeed(0f);
@@ -117,10 +147,10 @@ public class EntityClickMoveModule : EntityModule
         }
 
         Vector3 _direction = _toDestination / _remainingDistance;
-        float _step = Mathf.Min(GetMoveSpeed() * Time.deltaTime, _remainingDistance);
+        float _speed = Mathf.Min(GetMoveSpeed(), _remainingDistance / Time.fixedDeltaTime);
 
-        transform.position += _direction * _step;
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(_direction), Time.deltaTime * RotationLerpSpeed);
+        m_rigidbody.linearVelocity = new Vector3(_direction.x * _speed, m_rigidbody.linearVelocity.y, _direction.z * _speed);
+        m_rigidbody.MoveRotation(Quaternion.Slerp(m_rigidbody.rotation, Quaternion.LookRotation(_direction), Time.fixedDeltaTime * RotationLerpSpeed));
 
         if (m_animationModule != null)
             m_animationModule.SetLocomotionSpeed(1f);
