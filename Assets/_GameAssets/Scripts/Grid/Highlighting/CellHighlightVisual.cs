@@ -13,6 +13,12 @@ namespace Deckbuilder.Grid.Highlighting
 
         private Renderer[] m_slotRenderers;
         private MaterialPropertyBlock m_propertyBlock;
+        private float m_cellSize = 1f;
+
+        public void SetCellSize(float _cellSize)
+        {
+            m_cellSize = _cellSize;
+        }
 
         public void SetSlot(int _slotIndex, Color? _color)
         {
@@ -46,8 +52,6 @@ namespace Deckbuilder.Grid.Highlighting
             m_propertyBlock = new MaterialPropertyBlock();
             m_slotRenderers = new Renderer[SlotCount];
 
-            float _cellSize = GridManager.Instance != null ? GridManager.Instance.CellSize : 1f;
-
             for (int _i = 0; _i < SlotCount; _i++)
             {
                 GameObject _quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -55,7 +59,7 @@ namespace Deckbuilder.Grid.Highlighting
                 _quad.transform.SetParent(transform, false);
                 _quad.transform.localPosition = new Vector3(0f, SlotHeight[_i], 0f);
                 _quad.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                _quad.transform.localScale = Vector3.one * (_cellSize * SlotScale[_i]);
+                _quad.transform.localScale = Vector3.one * (m_cellSize * SlotScale[_i]);
 
                 Collider _collider = _quad.GetComponent<Collider>();
                 if (_collider != null)

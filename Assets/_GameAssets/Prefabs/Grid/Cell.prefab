@@ -42,6 +42,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2157746487140418352}
   - component: {fileID: 7297403670529949913}
+  - component: {fileID: 7297403670529949914}
   m_Layer: 6
   m_Name: Cell
   m_TagString: Untagged
@@ -78,8 +79,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 057c02a21967be0aaf3e2362edb4374a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.GridCell
-  m_isObstacle: 0
+  m_highlightVisual: {fileID: 7297403670529949914}
+  m_coordinate: {x: 0, y: 0}
+  m_cellType: 0
   m_obstacleVisual: {fileID: 6071773555406814855}
+--- !u!114 &7297403670529949914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1499728850971170044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1228ae419ecd574ef11a83949b17c0c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.Highlighting.CellHighlightVisual
 --- !u!1 &2611745349143858312
 GameObject:
   m_ObjectHideFlags: 0

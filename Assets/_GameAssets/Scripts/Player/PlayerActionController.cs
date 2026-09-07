@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Deckbuilder.Actions;
 using Deckbuilder.Cards;
+using Deckbuilder.Combat;
 using Deckbuilder.Grid;
 using Deckbuilder.Grid.Highlighting;
 using Stats;
@@ -34,6 +34,9 @@ namespace Deckbuilder.Player
 
         private Mode m_mode = Mode.Move;
         private GridCell m_hoveredCell;
+        private Arena m_arena;
+        private ArenaGrid m_grid;
+        private ArenaHighlighter m_highlighter;
 
         private Entity ResolveEntity()
         {
@@ -43,15 +46,24 @@ namespace Deckbuilder.Player
             return EntityManager.Instance != null ? EntityManager.Instance.Player : null;
         }
 
+        private bool ResolveArena(Entity _entity)
+        {
+            m_arena = _entity != null && _entity.TryGetModule(out EntityGridModule _gridModule) ? _gridModule.Arena : null;
+            m_grid = m_arena != null ? m_arena.Grid : null;
+            m_highlighter = m_arena != null ? m_arena.Highlighter : null;
+
+            return m_arena != null && m_grid != null && m_highlighter != null;
+        }
+
         private void Update()
         {
             UpdateModeSwitch();
             UpdateHover();
 
-            if (CellHighlightManager.Instance == null || GridManager.Instance == null)
-                return;
-
             Entity _entity = ResolveEntity();
+
+            if (!ResolveArena(_entity))
+                return;
 
             if (m_mode == Mode.Move)
                 UpdateMoveMode(_entity);
@@ -98,22 +110,22 @@ namespace Deckbuilder.Player
             }
 
             int _movementPoints = GetMovementPoints(_entity);
-            List<GridCell> _reachable = GridManager.Instance.GetReachableCells(_entityCell, _movementPoints);
+            List<GridCell> _reachable = m_grid.GetReachableCells(_entityCell, _movementPoints);
 
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.MovementRange);
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.MovementPath);
+            m_highlighter.ClearLayer(HighlightLayer.MovementRange);
+            m_highlighter.ClearLayer(HighlightLayer.MovementPath);
 
             foreach (GridCell _cell in _reachable)
-                CellHighlightManager.Instance.Highlight(_cell, HighlightLayer.MovementRange, m_moveRangeColor);
+                m_highlighter.Highlight(_cell, HighlightLayer.MovementRange, m_moveRangeColor);
 
             bool _hoveredReachable = m_hoveredCell != null && _reachable.Contains(m_hoveredCell);
             if (_hoveredReachable)
             {
-                List<GridCell> _path = GridManager.Instance.FindPath(_entityCell, m_hoveredCell);
+                List<GridCell> _path = m_grid.FindPath(_entityCell, m_hoveredCell);
                 if (_path != null)
                 {
                     foreach (GridCell _cell in _path)
-                        CellHighlightManager.Instance.Highlight(_cell, HighlightLayer.MovementPath, m_movePathColor);
+                        m_highlighter.Highlight(_cell, HighlightLayer.MovementPath, m_movePathColor);
                 }
             }
 
@@ -125,8 +137,8 @@ namespace Deckbuilder.Player
         {
             ClearMoveHighlights();
 
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.TargetZone);
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.EffectZone);
+            m_highlighter.ClearLayer(HighlightLayer.TargetZone);
+            m_highlighter.ClearLayer(HighlightLayer.EffectZone);
 
             GridCell _entityCell = CardExecutor.GetEffectiveCell(_entity);
             if (_entityCell == null || m_testCard == null)
@@ -138,17 +150,17 @@ namespace Deckbuilder.Player
             foreach (GridCell _cell in GetCellsInZone(_entityCell.Coordinate, m_testCard.TargetZone.Shape, m_testCard.TargetZone.MaxRange, m_testCard.TargetZone.MinRange))
             {
                 bool _hasLineOfSight = !m_testCard.RequiresLineOfSight
-                    || GridManager.Instance.HasLineOfSight(_entityCell, _cell, out GridCell _blockingCell, _entity);
+                    || m_grid.HasLineOfSight(_entityCell, _cell, out GridCell _blockingCell, _entity);
 
                 Color _cellColor = _hasLineOfSight ? m_targetZoneColor : m_targetZoneBlockedColor;
-                CellHighlightManager.Instance.Highlight(_cell, HighlightLayer.TargetZone, _cellColor);
+                m_highlighter.Highlight(_cell, HighlightLayer.TargetZone, _cellColor);
             }
 
-            if (m_hoveredCell == null || !CardExecutor.CanTarget(m_testCard, _entity, m_hoveredCell))
+            if (m_hoveredCell == null || !CardExecutor.CanTarget(m_arena, m_testCard, _entity, m_hoveredCell))
                 return;
 
             foreach (GridCell _cell in GetCellsInZone(m_hoveredCell.Coordinate, m_testCard.EffectZone.Shape, m_testCard.EffectZone.MaxRange, m_testCard.EffectZone.MinRange))
-                CellHighlightManager.Instance.Highlight(_cell, HighlightLayer.EffectZone, m_effectZoneColor);
+                m_highlighter.Highlight(_cell, HighlightLayer.EffectZone, m_effectZoneColor);
 
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
@@ -166,7 +178,7 @@ namespace Deckbuilder.Player
         private void EnqueueCard(Entity _entity, GridCell _targetCell)
         {
             if (_entity.TryGetModule(out EntityActionQueueModule _queue))
-                _queue.Enqueue(new PlayCardAction(m_testCard, _entity, _targetCell));
+                _queue.Enqueue(new PlayCardAction(m_arena, m_testCard, _entity, _targetCell));
         }
 
         private int GetMovementPoints(Entity _entity)
@@ -179,27 +191,19 @@ namespace Deckbuilder.Player
 
         private void ClearMoveHighlights()
         {
-            if (CellHighlightManager.Instance == null)
-                return;
-
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.MovementRange);
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.MovementPath);
+            m_highlighter.ClearLayer(HighlightLayer.MovementRange);
+            m_highlighter.ClearLayer(HighlightLayer.MovementPath);
         }
 
         private void ClearCardHighlights()
         {
-            if (CellHighlightManager.Instance == null)
-                return;
-
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.TargetZone);
-            CellHighlightManager.Instance.ClearLayer(HighlightLayer.EffectZone);
+            m_highlighter.ClearLayer(HighlightLayer.TargetZone);
+            m_highlighter.ClearLayer(HighlightLayer.EffectZone);
         }
 
-        private static IEnumerable<GridCell> GetCellsInZone(Vector2Int _origin, GridShape _shape, int _size, int _minSize = 0)
+        private IEnumerable<GridCell> GetCellsInZone(Vector2Int _origin, GridShape _shape, int _size, int _minSize = 0)
         {
-            return GridManager.Instance != null
-                ? GridManager.Instance.GetCellsInZone(_origin, _shape, _size, _minSize)
-                : Array.Empty<GridCell>();
+            return m_grid.GetCellsInZone(_origin, _shape, _size, _minSize);
         }
     }
 }

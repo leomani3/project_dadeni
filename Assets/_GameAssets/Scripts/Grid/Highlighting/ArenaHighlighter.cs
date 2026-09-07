@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using MyBox;
 using UnityEngine;
 
 namespace Deckbuilder.Grid.Highlighting
 {
-    public class CellHighlightManager : Singleton<CellHighlightManager>
+    public class ArenaHighlighter : MonoBehaviour
     {
         private static readonly Dictionary<HighlightLayer, int> SlotByLayer = new()
         {
@@ -47,6 +46,12 @@ namespace Deckbuilder.Grid.Highlighting
             }
 
             _cells.Clear();
+        }
+
+        public void ClearAllLayers()
+        {
+            foreach (HighlightLayer _layer in m_activeCellsByLayer.Keys)
+                ClearLayer(_layer);
         }
 
         private static int GetSlot(HighlightLayer _layer)

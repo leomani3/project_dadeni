@@ -16,8 +16,9 @@ public class UIManager : Singleton<UIManager>
     private void Awake()
     {
         SetupCanvases();
-        
-        m_defaultCanvas.Open();
+
+        if (m_defaultCanvas != null)
+            m_defaultCanvas.Open();
     }
 
     private void SetupCanvases()

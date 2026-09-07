@@ -18,10 +18,7 @@ namespace Deckbuilder.Cards.Actions
                 return;
             }
 
-            if (CombatManager.Instance == null)
-                return;
-
-            CombatManager.Instance.SpawnEntity(m_entityPrefab, _context.TargetCell);
+            _context.Arena.SpawnEntity(m_entityPrefab, _context.TargetCell);
         }
     }
 }

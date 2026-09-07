@@ -21,10 +21,7 @@ public class EntityAnimationModule : EntityModule
     protected override void OnInitialize()
     {
         base.OnInitialize();
-
-        if (m_animator == null)
-            m_animator = Owner.Animator != null ? Owner.Animator : GetComponentInChildren<Animator>();
-
+        
         if (m_animator != null && m_overrideController == null && m_animator.runtimeAnimatorController != null)
         {
             m_overrideController = BuildOverrideController(m_animator.runtimeAnimatorController);

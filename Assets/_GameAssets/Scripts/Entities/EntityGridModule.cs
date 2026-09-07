@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Deckbuilder.Combat;
 using Deckbuilder.Grid;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ public class EntityGridModule : EntityModule
     [SerializeField] private float m_moveSpeed = 5f;
     [SerializeField] private float m_rotationSpeed = 10f;
 
+    public Arena Arena { get; private set; }
+    public ArenaGrid Grid => Arena != null ? Arena.Grid : null;
     public GridCell CurrentCell { get; private set; }
     public GridCell DestinationCell { get; private set; }
     public bool IsMoving { get; private set; }
@@ -16,6 +19,11 @@ public class EntityGridModule : EntityModule
 
     private Coroutine m_moveRoutine;
     private bool m_cancelMoveRequested;
+
+    public void SetArena(Arena _arena)
+    {
+        Arena = _arena;
+    }
 
     public void SetCurrentCell(GridCell _cell)
     {
@@ -33,10 +41,10 @@ public class EntityGridModule : EntityModule
 
     public bool MoveTo(GridCell _destination, bool _ignoreOccupants = false, bool _randomizePath = false)
     {
-        if (IsMoving || _destination == null || GridManager.Instance == null || CurrentCell == null)
+        if (IsMoving || _destination == null || Grid == null || CurrentCell == null)
             return false;
 
-        List<GridCell> _path = GridManager.Instance.FindPath(CurrentCell, _destination, _ignoreOccupants, _randomizePath);
+        List<GridCell> _path = Grid.FindPath(CurrentCell, _destination, _ignoreOccupants, _randomizePath);
         if (_path == null || _path.Count < 2)
             return false;
 
@@ -65,6 +73,7 @@ public class EntityGridModule : EntityModule
         if (CurrentCell != null && CurrentCell.Occupant == Owner)
             CurrentCell.ClearOccupant();
 
+        Arena = null;
         CurrentCell = null;
         DestinationCell = null;
         IsMoving = false;
@@ -79,7 +88,7 @@ public class EntityGridModule : EntityModule
         {
             GridCell _targetCell = _path[_i];
             yield return MoveToCell(_targetCell);
-            GridManager.Instance.MoveEntity(Owner, _targetCell);
+            Grid.MoveEntity(Owner, _targetCell);
 
             if (m_cancelMoveRequested)
                 break;

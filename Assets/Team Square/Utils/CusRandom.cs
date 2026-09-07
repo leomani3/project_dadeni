@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+﻿using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Utils
@@ -103,6 +103,24 @@ namespace Utils
             float y = _radius * Mathf.Sin(_angle);
 
             return new Vector3(x, 0, y);
+        }
+
+        public static Quaternion Rotation(RotationAxis _axes = RotationAxis.Y)
+        {
+            return Rotation(new Vector2(0f, 360f), _axes);
+        }
+
+        public static Quaternion Rotation(Vector2 _angleMinMax, RotationAxis _axes = RotationAxis.Y)
+        {
+            return Quaternion.Euler(
+                RandomAngleOnAxis(_angleMinMax, _axes, RotationAxis.X),
+                RandomAngleOnAxis(_angleMinMax, _axes, RotationAxis.Y),
+                RandomAngleOnAxis(_angleMinMax, _axes, RotationAxis.Z));
+        }
+
+        private static float RandomAngleOnAxis(Vector2 _angleMinMax, RotationAxis _axes, RotationAxis _axis)
+        {
+            return (_axes & _axis) != 0 ? RangeF(_angleMinMax) : 0f;
         }
 
         public static int RandomWeighted(float[] weights)

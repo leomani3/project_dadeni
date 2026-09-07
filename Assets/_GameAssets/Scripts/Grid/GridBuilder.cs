@@ -7,31 +7,24 @@ namespace Deckbuilder.Grid
 {
     public class GridBuilder : MonoBehaviour
     {
+        [SerializeField] private ArenaGrid m_grid;
         [SerializeField] private GridCell m_cellPrefab;
         [SerializeField] private Transform m_cellsParent;
         [SerializeField] private Vector2Int m_size = new(8, 8);
         [SerializeField] private Vector2Int m_origin = Vector2Int.zero;
 
-        public void EnsureBuilt()
-        {
-            Transform _parent = m_cellsParent != null ? m_cellsParent : transform;
-            if (_parent.childCount == 0)
-                BuildGrid();
-        }
-
         [ContextMenu("Build Grid")]
         public void BuildGrid()
         {
-            if (m_cellPrefab == null)
+            if (m_cellPrefab == null || m_grid == null)
             {
-                Debug.LogError("No cell prefab assigned.", this);
+                Debug.LogError("No cell prefab or arena grid assigned.", this);
                 return;
             }
 
             ClearGrid();
 
             Transform _parent = m_cellsParent != null ? m_cellsParent : transform;
-            float _cellSize = GetCellSize();
 
             for (int _x = 0; _x < m_size.x; _x++)
             {
@@ -40,7 +33,8 @@ namespace Deckbuilder.Grid
                     Vector2Int _coordinate = m_origin + new Vector2Int(_x, _y);
                     GridCell _cell = InstantiateCell(_parent);
                     _cell.name = $"Cell_{_coordinate.x}_{_coordinate.y}";
-                    _cell.transform.position = new Vector3(_coordinate.x * _cellSize, 0f, _coordinate.y * _cellSize);
+                    _cell.transform.localPosition = new Vector3(_coordinate.x * m_grid.CellSize, 0f, _coordinate.y * m_grid.CellSize);
+                    _cell.SetCoordinate(_coordinate);
                 }
             }
         }
@@ -59,12 +53,6 @@ namespace Deckbuilder.Grid
                 else
                     DestroyImmediate(_child);
             }
-        }
-
-        private float GetCellSize()
-        {
-            GridManager _gridManager = GridManager.Instance;
-            return _gridManager != null ? _gridManager.CellSize : 1f;
         }
 
         private GridCell InstantiateCell(Transform _parent)

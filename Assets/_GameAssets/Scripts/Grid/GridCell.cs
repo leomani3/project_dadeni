@@ -4,30 +4,34 @@ using UnityEngine;
 
 namespace Deckbuilder.Grid
 {
+    [RequireComponent(typeof(CellHighlightVisual))]
     public class GridCell : MonoBehaviour
     {
-        [SerializeField] private bool m_isObstacle;
+        private const float SpawnGizmoSize = 0.8f;
+        private const float SpawnGizmoHeight = 0.05f;
+
+        private static readonly Color AllySpawnColor = new(0.2f, 0.9f, 0.4f, 1f);
+        private static readonly Color EnemySpawnColor = new(1f, 0.3f, 0.25f, 1f);
+
+        [SerializeField] private CellHighlightVisual m_highlightVisual;
+        [SerializeField] private Vector2Int m_coordinate;
+        [SerializeField] private CellType m_cellType;
         [SerializeField] private GameObject m_obstacleVisual;
 
-        public Vector2Int Coordinate => GridManager.PositionToCoordinate(transform.position);
+        private readonly Dictionary<GridDirection, GridCell> m_neighbors = new();
+
+        public CellHighlightVisual HighlightVisual => m_highlightVisual;
+        public Vector2Int Coordinate => m_coordinate;
+        public CellType CellType => m_cellType;
         public Entity Occupant { get; private set; }
         public bool IsOccupied => Occupant != null;
-        public bool IsObstacle => m_isObstacle;
+        public bool IsObstacle => m_cellType == CellType.Obstacle;
         public bool IsWalkable => !IsObstacle && !IsOccupied;
 
-        private CellHighlightVisual m_highlightVisual;
-        public CellHighlightVisual HighlightVisual
+        private void Reset()
         {
-            get
-            {
-                if (m_highlightVisual == null)
-                    m_highlightVisual = GetComponent<CellHighlightVisual>() ?? gameObject.AddComponent<CellHighlightVisual>();
-
-                return m_highlightVisual;
-            }
+            m_highlightVisual = GetComponent<CellHighlightVisual>();
         }
-
-        private readonly Dictionary<GridDirection, GridCell> m_neighbors = new();
 
         private void Awake()
         {
@@ -39,16 +43,56 @@ namespace Deckbuilder.Grid
             UpdateObstacleVisual();
         }
 
-        public void SetObstacle(bool _value)
+        public void SetCoordinate(Vector2Int _coordinate)
         {
-            m_isObstacle = _value;
+            m_coordinate = _coordinate;
+        }
+
+        public void SetCellType(CellType _cellType)
+        {
+            m_cellType = _cellType;
             UpdateObstacleVisual();
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if (!TryGetSpawnGizmoColor(out Color _color))
+                return;
+
+            Vector3 _center = transform.position + Vector3.up * SpawnGizmoHeight;
+            Vector3 _size = new(SpawnGizmoSize, 0f, SpawnGizmoSize);
+
+            Gizmos.color = new Color(_color.r, _color.g, _color.b, 0.25f);
+            Gizmos.DrawCube(_center, _size);
+
+            Gizmos.color = _color;
+            Gizmos.DrawWireCube(_center, _size);
+        }
+
+        private bool TryGetSpawnGizmoColor(out Color _color)
+        {
+            switch (m_cellType)
+            {
+                case CellType.AllySpawn:
+                    _color = AllySpawnColor;
+                    return true;
+
+                case CellType.EnemySpawn:
+                    _color = EnemySpawnColor;
+                    return true;
+
+                default:
+                    _color = default;
+                    return false;
+            }
+        }
+#endif
 
         private void UpdateObstacleVisual()
         {
             if (m_obstacleVisual != null)
-                m_obstacleVisual.SetActive(m_isObstacle);
+                m_obstacleVisual.SetActive(IsObstacle);
         }
 
         public void SetNeighbor(GridDirection _direction, GridCell _cell)
