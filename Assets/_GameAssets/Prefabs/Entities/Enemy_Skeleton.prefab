@@ -52,6 +52,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3000000000003333333, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 8152540462247576308}
+    - target: {fileID: 3000000000003333333, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
+      propertyPath: _fightStartDistance
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3000000000009999999, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
+      propertyPath: m_animator
+      value: 
+      objectReference: {fileID: 8152540462247576308}
     - target: {fileID: 5560497807694295310, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
       propertyPath: m_Height
       value: 2
@@ -165,5 +177,10 @@ MonoBehaviour:
 --- !u!4 &4506945051649142808 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
+  m_PrefabInstance: {fileID: 4107665319340611571}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &8152540462247576308 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5197997858216285447, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
   m_PrefabInstance: {fileID: 4107665319340611571}
   m_PrefabAsset: {fileID: 0}

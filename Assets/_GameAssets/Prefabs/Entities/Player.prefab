@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2000000000002222222}
   - component: {fileID: 4815985369589603119}
   - component: {fileID: 8220374775781998508}
+  - component: {fileID: 2093910318927963282}
   - component: {fileID: 2000000000003333333}
   - component: {fileID: 2000000000004444444}
   - component: {fileID: 2000000000005555555}
@@ -66,9 +67,9 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 116
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!136 &8220374775781998508
 CapsuleCollider:
@@ -93,6 +94,28 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!195 &2093910318927963282
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 8
+  m_Acceleration: 999999
+  avoidancePriority: 50
+  m_AngularSpeed: 999999
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 0
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!114 &2000000000003333333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -213,11 +236,6 @@ MonoBehaviour:
   m_cellLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  m_moveRangeColor: {r: 0, g: 1, b: 0, a: 0.4}
-  m_movePathColor: {r: 1, g: 0.5, b: 0, a: 0.6}
-  m_targetZoneColor: {r: 0, g: 0.5, b: 1, a: 0.5}
-  m_targetZoneBlockedColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.4}
-  m_effectZoneColor: {r: 1, g: 0.5, b: 0, a: 0.6}
 --- !u!114 &910185953793110241
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,8 +248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4e7f1a9b2d84c3e9a6f0b5d8c1e2a7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityRoomMoverModule
-  m_rigidbody: {fileID: 4815985369589603119}
-  m_fallbackMoveSpeed: 8
+  m_agent: {fileID: 2093910318927963282}
 --- !u!1 &2000000000012222221
 GameObject:
   m_ObjectHideFlags: 0

@@ -3230,6 +3230,8 @@ MonoBehaviour:
   - {fileID: 845353323258429797, guid: 2c80ce9f5d49a5149818e3516ddc9071, type: 3}
   - {fileID: 845353323258429797, guid: 2c80ce9f5d49a5149818e3516ddc9071, type: 3}
   - {fileID: 845353323258429797, guid: 2c80ce9f5d49a5149818e3516ddc9071, type: 3}
+  _spawnRadius: 2
+  _minDistanceBetweenEntities: 1
   _arena: {fileID: 112001}
 --- !u!1001 &1141414429
 PrefabInstance:

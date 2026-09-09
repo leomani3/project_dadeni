@@ -1,45 +1,30 @@
 using System;
-using Stats;
 using UnityEngine;
+using UnityEngine.AI;
 using Utils;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class EntityRoomMoverModule : EntityModule
 {
-    private const float RotationLerpSpeed = 20f;
     private const float MovingVelocityThreshold = 0.1f;
-    private const float MinimumArrivalDistance = 0.01f;
+    private const float ArrivalVelocityThreshold = 0.01f;
+    private const float NavMeshSampleDistance = 2f;
 
-    [SerializeField] private Rigidbody m_rigidbody;
-    [SerializeField] private float m_fallbackMoveSpeed = 4f;
+    [SerializeField] private NavMeshAgent m_agent;
 
-    private EntityStatModule m_statModule;
     private EntityAnimationModule m_animationModule;
-    private Vector3 m_destination;
-    private float m_arrivalDistance;
     private Action m_onDestinationReached;
     private bool m_hasDestination;
 
     public bool IsMoving => m_hasDestination;
-    public Vector3 Destination => m_destination;
+    public Vector3 Destination => m_agent.destination;
 
     public override void OnAllModuleInitialized()
     {
         base.OnAllModuleInitialized();
 
-        Owner.TryGetModule(out m_statModule);
         Owner.TryGetModule(out m_animationModule);
 
-        if (m_rigidbody == null)
-        {
-            this.LogError("No Rigidbody assigned, the character will not move nor collide with anything.");
-            return;
-        }
-
-        m_rigidbody.freezeRotation = true;
-        m_rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-
-        m_destination = m_rigidbody.position;
         m_hasDestination = false;
         m_onDestinationReached = null;
     }
@@ -58,11 +43,7 @@ public class EntityRoomMoverModule : EntityModule
 
         StopMoving();
 
-        m_rigidbody.linearVelocity = Vector3.zero;
-        m_rigidbody.angularVelocity = Vector3.zero;
-        m_rigidbody.isKinematic = true;
-        m_rigidbody.interpolation = RigidbodyInterpolation.None;
-
+        m_agent.enabled = false;
         Owner.Collider.enabled = false;
         enabled = false;
     }
@@ -71,27 +52,33 @@ public class EntityRoomMoverModule : EntityModule
     {
         base.OnCombatExit();
 
-        m_rigidbody.isKinematic = false;
-        m_rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        m_agent.enabled = true;
+        m_agent.Warp(transform.position);
 
         Owner.Collider.enabled = true;
         enabled = true;
     }
 
-    public void MoveTo(Vector3 _worldPosition, Action _onDestinationReached = null)
+    public bool MoveTo(Vector3 _worldPosition, Action _onDestinationReached = null)
     {
-        MoveTo(_worldPosition, 0f, _onDestinationReached);
+        return MoveTo(_worldPosition, 0f, _onDestinationReached);
     }
 
-    public void MoveTo(Vector3 _worldPosition, float _stopDistance, Action _onDestinationReached = null)
+    public bool MoveTo(Vector3 _worldPosition, float _stopDistance, Action _onDestinationReached = null)
     {
-        if (m_rigidbody == null)
-            return;
+        if (!NavMesh.SamplePosition(_worldPosition, out NavMeshHit _hit, NavMeshSampleDistance, NavMesh.AllAreas))
+            return false;
 
-        m_destination = new Vector3(_worldPosition.x, m_rigidbody.position.y, _worldPosition.z);
-        m_arrivalDistance = Mathf.Max(_stopDistance, MinimumArrivalDistance);
+        m_agent.stoppingDistance = _stopDistance;
+        m_agent.isStopped = false;
+
+        if (!m_agent.SetDestination(_hit.position))
+            return false;
+
         m_onDestinationReached = _onDestinationReached;
         m_hasDestination = true;
+
+        return true;
     }
 
     public void StopMoving()
@@ -99,22 +86,19 @@ public class EntityRoomMoverModule : EntityModule
         m_hasDestination = false;
         m_onDestinationReached = null;
 
-        if (m_rigidbody != null)
-            m_rigidbody.linearVelocity = new Vector3(0f, m_rigidbody.linearVelocity.y, 0f);
+        if (m_agent.isActiveAndEnabled && m_agent.isOnNavMesh)
+            m_agent.ResetPath();
     }
 
     private void Reset()
     {
-        m_rigidbody = GetComponent<Rigidbody>();
+        m_agent = GetComponent<NavMeshAgent>();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        if (Owner == null || m_rigidbody == null)
-            return;
-
         UpdateLocomotionAnimation();
-        AdvanceTowardsDestination();
+        UpdateDestination();
     }
 
     private void UpdateLocomotionAnimation()
@@ -122,33 +106,28 @@ public class EntityRoomMoverModule : EntityModule
         if (m_animationModule == null)
             return;
 
-        Vector3 _horizontalVelocity = m_rigidbody.linearVelocity;
-        _horizontalVelocity.y = 0f;
-
-        m_animationModule.SetLocomotionSpeed(_horizontalVelocity.magnitude > MovingVelocityThreshold ? 1f : 0f);
+        m_animationModule.SetLocomotionSpeed(m_agent.velocity.magnitude > MovingVelocityThreshold ? 1f : 0f);
     }
 
-    private void AdvanceTowardsDestination()
+    private void UpdateDestination()
     {
-        if (!m_hasDestination)
+        if (!m_hasDestination || m_agent.pathPending)
             return;
 
-        Vector3 _toDestination = m_destination - m_rigidbody.position;
-        _toDestination.y = 0f;
-
-        float _remainingDistance = _toDestination.magnitude;
-
-        if (_remainingDistance <= m_arrivalDistance)
+        if (m_agent.pathStatus != NavMeshPathStatus.PathComplete)
         {
-            ReachDestination();
+            this.LogWarning($"No complete path to {m_agent.destination}, movement aborted.");
+            StopMoving();
             return;
         }
 
-        Vector3 _direction = _toDestination / _remainingDistance;
-        float _speed = Mathf.Min(GetMoveSpeed(), (_remainingDistance - m_arrivalDistance) / Time.fixedDeltaTime);
+        if (m_agent.remainingDistance > m_agent.stoppingDistance)
+            return;
 
-        m_rigidbody.linearVelocity = new Vector3(_direction.x * _speed, m_rigidbody.linearVelocity.y, _direction.z * _speed);
-        m_rigidbody.MoveRotation(Quaternion.Slerp(m_rigidbody.rotation, Quaternion.LookRotation(_direction), Time.fixedDeltaTime * RotationLerpSpeed));
+        if (m_agent.hasPath && m_agent.velocity.sqrMagnitude > ArrivalVelocityThreshold)
+            return;
+
+        ReachDestination();
     }
 
     private void ReachDestination()
@@ -158,14 +137,5 @@ public class EntityRoomMoverModule : EntityModule
         StopMoving();
 
         _onDestinationReached?.Invoke();
-    }
-
-    private float GetMoveSpeed()
-    {
-        if (m_statModule == null || StatManager.Instance == null)
-            return m_fallbackMoveSpeed;
-
-        float _statSpeed = m_statModule.GetValue(StatType.MoveSpeed);
-        return _statSpeed > 0f ? _statSpeed : m_fallbackMoveSpeed;
     }
 }
