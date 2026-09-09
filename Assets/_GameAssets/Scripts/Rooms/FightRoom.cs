@@ -8,7 +8,7 @@ public class FightRoom : Room
 
     public void Init(List<Entity> enemies)
     {
-        _arena.SpawnEnemies(enemies, true);
+        _arena.StartCombat(enemies);
     }
 
     public override void Enter()

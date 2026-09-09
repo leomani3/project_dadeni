@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 9116475251767432605}
   - component: {fileID: 6428098469368468697}
   - component: {fileID: 5779485784416475175}
+  - component: {fileID: 2747148922316118445}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -240,6 +241,22 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: ab09877e2e707104187f6f83e2f62510, type: 2}
+--- !u!114 &2747148922316118445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244475919903486175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c49b4cc203aa6414fae5c798d1d0e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.PhysicsRaycaster
+  m_EventMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_MaxRayIntersections: 0
 --- !u!1 &6253803983944833123
 GameObject:
   m_ObjectHideFlags: 0
@@ -287,6 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCam: {fileID: 8529779136037131250}
+  _virtualCamera: {fileID: 0}
 --- !u!1 &8501095908338403052
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,7 +425,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66b2923897989ab4aaa67ef710a61eb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_uiBackgroundImage: {fileID: 0}
   panSpeed: 5
   zoomSpeed: 2
   zoomSmoothness: 6

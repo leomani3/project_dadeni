@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2000000000002222222}
+  - component: {fileID: 4815985369589603119}
+  - component: {fileID: 8220374775781998508}
   - component: {fileID: 2000000000003333333}
   - component: {fileID: 2000000000004444444}
   - component: {fileID: 2000000000005555555}
@@ -18,9 +20,6 @@ GameObject:
   - component: {fileID: 2000000000009999999}
   - component: {fileID: 2000000000011111110}
   - component: {fileID: 910185953793110241}
-  - component: {fileID: 910185953793110242}
-  - component: {fileID: 4815985369589603119}
-  - component: {fileID: 8220374775781998508}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -44,6 +43,56 @@ Transform:
   - {fileID: 2000000000013333332}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &4815985369589603119
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 1
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 0
+--- !u!136 &8220374775781998508
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2000000000003333333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,16 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Entity
   _animator: {fileID: 0}
   _collider: {fileID: 8220374775781998508}
-  _modelTransform: {fileID: 2000000000013333332}
-  _knockUpHeightCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   _entityType: 1
-  _staggerAnimationState: Staggered
-  _staggerVariationAnimatorParameter: StaggerVariation
 --- !u!114 &2000000000004444444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,7 +166,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5f3fae4573dcfd0502754105938eefe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityGridModule
+  m_EditorClassIdentifier: Assembly-CSharp::EntityCombatMoverModule
   m_moveSpeed: 5
   m_rotationSpeed: 10
 --- !u!114 &2000000000008888888
@@ -167,7 +207,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f4da9fda59169474bff964ee4b6e1cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Player.PlayerActionController
-  m_entity: {fileID: 2000000000003333333}
   m_testCard: {fileID: 11400000, guid: a1511020b13e33f6f288e6585a008032, type: 2}
   m_moveModeKey: 41
   m_selectCardKey: 42
@@ -190,81 +229,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4e7f1a9b2d84c3e9a6f0b5d8c1e2a7f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityMoveModule
+  m_EditorClassIdentifier: Assembly-CSharp::EntityRoomMoverModule
   m_rigidbody: {fileID: 4815985369589603119}
   m_fallbackMoveSpeed: 8
---- !u!114 &910185953793110242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000000001111111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 794c40fda6214755908c7d409ad6e08b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Player.PlayerRoomController
-  m_entity: {fileID: 2000000000003333333}
-  m_moveModule: {fileID: 910185953793110241}
-  m_arena: {fileID: 0}
-  m_groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 8
-  m_entityLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  m_distanceToStartCombat: 1.5
---- !u!54 &4815985369589603119
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000000001111111}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 1
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 116
-  m_CollisionDetection: 0
---- !u!136 &8220374775781998508
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000000001111111}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 1
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2000000000012222221
 GameObject:
   m_ObjectHideFlags: 0

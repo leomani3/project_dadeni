@@ -10,6 +10,12 @@ public class GameConfig : ScriptableObject
     private static GameConfig _instance;
     public static GameConfig Instance => _instance ?? Load();
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticInstance()
+    {
+        _instance = null;
+    }
+
     private static GameConfig Load()
     {
         _instance = Resources.Load<GameConfig>("GameConfig");

@@ -4,7 +4,7 @@ using Deckbuilder.Combat;
 using Deckbuilder.Grid;
 using UnityEngine;
 
-public class EntityGridModule : EntityModule
+public class EntityCombatMoverModule : EntityModule
 {
     [SerializeField] private float m_moveSpeed = 5f;
     [SerializeField] private float m_rotationSpeed = 10f;
@@ -17,8 +17,16 @@ public class EntityGridModule : EntityModule
 
     public GridCell EffectiveCell => IsMoving && DestinationCell != null ? DestinationCell : CurrentCell;
 
+    private EntityAnimationModule m_animationModule;
     private Coroutine m_moveRoutine;
     private bool m_cancelMoveRequested;
+
+    public override void OnAllModuleInitialized()
+    {
+        base.OnAllModuleInitialized();
+
+        Owner.TryGetModule(out m_animationModule);
+    }
 
     public void SetArena(Arena _arena)
     {
@@ -83,6 +91,7 @@ public class EntityGridModule : EntityModule
     private IEnumerator FollowPath(List<GridCell> _path)
     {
         IsMoving = true;
+        m_animationModule.SetLocomotionSpeed(1f);
 
         for (int _i = 1; _i < _path.Count; _i++)
         {
@@ -93,6 +102,8 @@ public class EntityGridModule : EntityModule
             if (m_cancelMoveRequested)
                 break;
         }
+
+        m_animationModule.SetLocomotionSpeed(0f);
 
         IsMoving = false;
         DestinationCell = null;

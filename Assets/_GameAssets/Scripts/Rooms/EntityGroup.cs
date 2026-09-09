@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Deckbuilder.Combat;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Utils;
@@ -6,6 +7,11 @@ using Utils;
 public class EntityGroup : MonoBehaviour
 {
     [SerializeField] private List<Entity> _entityPrefabs = new List<Entity>();
+
+    [Header("debug")]
+    [SerializeField] private Arena _arena;
+
+    private readonly List<Entity> _entities = new List<Entity>();
 
     private void Awake()
     {
@@ -21,38 +27,16 @@ public class EntityGroup : MonoBehaviour
     private Entity Spawn(Entity _entityPrefab)
     {
         Entity _entity = Instantiate(_entityPrefab, transform.position, CusRandom.Rotation(RotationAxis.Y), transform);
-        SubscribeToEntityCallbacks(_entity);
+        _entity.onFightQuery += OnEntityFightQuery;
+        _entities.Add(_entity);
+
         return _entity;
     }
-
-    private void SubscribeToEntityCallbacks(Entity entity)
-    {
-        entity.onHoverEnter += OnEntityHoverEnter;
-        entity.onHoverExit += OnEntityHoverExit;
-        entity.onFightQuery += OnEntityFightQuery;
-    }
     
-    private void UnsubscribeToEntityCallbacks(Entity entity)
-    {
-        entity.onHoverEnter -= OnEntityHoverEnter;
-        entity.onHoverExit -= OnEntityHoverExit;
-        entity.onFightQuery -= OnEntityFightQuery;
-    }
-
-    private void OnEntityHoverEnter(Entity entity)
-    {
-        //todo : display some ui
-    }
-
-    private void OnEntityHoverExit(Entity entity)
-    {
-        //todo : hide some ui
-    }
-
+    
     private void OnEntityFightQuery(Entity entity)
     {
-        //Todo : start fight
-        
-        UnsubscribeToEntityCallbacks(entity);
+        _arena.StartCombat(_entities);
+        entity.onFightQuery -= OnEntityFightQuery;
     }
 }

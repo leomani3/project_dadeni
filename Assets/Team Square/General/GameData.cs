@@ -22,6 +22,12 @@ public class GameData : ScriptableObject
 	private static GameData _instance;
 	public static GameData Instance => _instance ?? Load();
 
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	private static void ResetStaticInstance()
+	{
+		_instance = null;
+	}
+
 	public void Init()
 	{
 #if UNITY_EDITOR

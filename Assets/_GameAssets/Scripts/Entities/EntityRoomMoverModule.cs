@@ -4,7 +4,7 @@ using UnityEngine;
 using Utils;
 
 [RequireComponent(typeof(Rigidbody))]
-public class EntityMoveModule : EntityModule
+public class EntityRoomMoverModule : EntityModule
 {
     private const float RotationLerpSpeed = 20f;
     private const float MovingVelocityThreshold = 0.1f;
@@ -49,6 +49,33 @@ public class EntityMoveModule : EntityModule
         base.Cleanup();
 
         StopMoving();
+        enabled = true;
+    }
+
+    public override void OnCombatEnter()
+    {
+        base.OnCombatEnter();
+
+        StopMoving();
+
+        m_rigidbody.linearVelocity = Vector3.zero;
+        m_rigidbody.angularVelocity = Vector3.zero;
+        m_rigidbody.isKinematic = true;
+        m_rigidbody.interpolation = RigidbodyInterpolation.None;
+
+        Owner.Collider.enabled = false;
+        enabled = false;
+    }
+
+    public override void OnCombatExit()
+    {
+        base.OnCombatExit();
+
+        m_rigidbody.isKinematic = false;
+        m_rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+
+        Owner.Collider.enabled = true;
+        enabled = true;
     }
 
     public void MoveTo(Vector3 _worldPosition, Action _onDestinationReached = null)

@@ -19,6 +19,11 @@ public class EntityManager : Singleton<EntityManager>
     public List<Entity> Enemies => _enemies;
     public Entity Player => _player;
 
+    public bool TryGetEntityFromCollider(Collider collider, out Entity entity)
+    {
+        return _entitiesByCollider.TryGetValue(collider, out entity);
+    }
+
     internal void Register(Entity entity)
     {
         if (entity == null) return;

@@ -9,7 +9,7 @@ namespace Deckbuilder.Cards
     {
         public static GridCell GetEffectiveCell(Entity _entity)
         {
-            return _entity != null && _entity.TryGetModule(out EntityGridModule _gridModule) ? _gridModule.EffectiveCell : null;
+            return _entity != null && _entity.TryGetModule(out EntityCombatMoverModule _combatMover) ? _combatMover.EffectiveCell : null;
         }
 
         public static bool IsWithinTargetZone(Arena _arena, CardConfig _card, Entity _caster, GridCell _targetCell)

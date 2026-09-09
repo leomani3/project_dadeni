@@ -16,13 +16,13 @@ namespace Deckbuilder.Actions
 
         public IEnumerator Execute()
         {
-            if (!m_entity.TryGetModule(out EntityGridModule _gridModule))
+            if (!m_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
                 yield break;
 
-            if (!_gridModule.MoveTo(m_destination))
+            if (!_combatMover.MoveTo(m_destination))
                 yield break;
 
-            while (_gridModule.IsMoving)
+            while (_combatMover.IsMoving)
                 yield return null;
         }
     }

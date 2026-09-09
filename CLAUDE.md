@@ -88,6 +88,7 @@ Direct Lean Pool: `LeanPool.Spawn(prefab, ...)` / `LeanPool.Despawn(this)`, with
 - Tweening is DOTween; store tweens and `Kill()` them before restarting (see `UIContainer`, `CustomButton`).
 - Large numbers are displayed via `NumberFormatter.FormatValue` / `value.ToSmartString()`. Currency amounts are `double` (or `ulong` in `Cost`).
 - Functions and variable names should make what they're about obvious
+- **Domain reload is disabled when entering play mode**, so statics are never reset automatically. Every mutable `static` field must be cleared by a static method marked `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]`, which runs before any scene loads on each play. The exception is a `UnityEngine.Object` static that is only ever read through `if (x == null)`: Unity's overloaded `==` reports a destroyed object as null, so it self-heals (this is why MyBox `Singleton<T>` and the cached `Material` statics survive). `??`, `is null` and `?.` do *not* — they are plain C# checks and see a stale reference. Assets from `Resources.Load` are never destroyed, so they self-heal in no case at all and always need the explicit reset.
 - Never write any comment
 - Remove every Odin attributes
 - Avoid GetComponent in awake as it hides the responsability of getting the component. Always serialize what need to be there and use [RequireComponent], [Required] and Reset() to help with getting it

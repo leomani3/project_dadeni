@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour, IPoolable
 {
-    public Action<Entity> onHoverEnter;
-    public Action<Entity> onHoverExit;
     public Action<Entity> onFightQuery;
     
     [SerializeField] private Animator _animator;
@@ -56,6 +54,12 @@ public class Entity : MonoBehaviour, IPoolable
         }
 
         LeanPool.Despawn(this);
+    }
+
+    private void Reset()
+    {
+        _animator = GetComponentInChildren<Animator>();
+        _collider = GetComponent<Collider>();
     }
 
     private void Awake()
@@ -109,8 +113,20 @@ public class Entity : MonoBehaviour, IPoolable
         EntityManager.Instance?.Unregister(this);
     }
 
-    private void OnMouseOver()
+    public void QueryFight()
     {
-        print("asdjnasjdn");
+        onFightQuery?.Invoke(this);
+    }
+
+    public void OnCombatEnter()
+    {
+        foreach (var module in _modulesByType.Values.Distinct())
+            module.OnCombatEnter();
+    }
+
+    public void OnCombatExit()
+    {
+        foreach (var module in _modulesByType.Values.Distinct())
+            module.OnCombatExit();
     }
 }

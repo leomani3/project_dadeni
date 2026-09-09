@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Deckbuilder.Grid;
-using Deckbuilder.Grid.Highlighting;
 using Lean.Pool;
 using UnityEngine;
 using Utils;
@@ -9,52 +8,40 @@ using Utils;
 namespace Deckbuilder.Combat
 {
     [RequireComponent(typeof(ArenaGrid))]
-    [RequireComponent(typeof(ArenaHighlighter))]
     public class Arena : MonoBehaviour
     {
         public Action onCombatStarted;
         public Action onCombatEnded;
 
         [SerializeField] private ArenaGrid m_grid;
-        [SerializeField] private ArenaHighlighter m_highlighter;
-        [SerializeField] private Entity m_playerPrefab;
-        [SerializeField] private List<Entity> m_enemyPrefabs = new();
-
-
-        private readonly List<Entity> m_spawnedEntities = new();
-        private readonly List<Entity> m_enemies = new();
-
+        
         public ArenaGrid Grid => m_grid;
-        public ArenaHighlighter Highlighter => m_highlighter;
-        public Entity Player { get; private set; }
         public IReadOnlyList<Entity> Enemies => m_enemies;
         public bool IsCombatRunning { get; private set; }
+        
+        private readonly List<Entity> m_combatEntities = new();
+        private readonly List<Entity> m_enemies = new();
+        private Entity _player;
 
         private void Reset()
         {
             m_grid = GetComponent<ArenaGrid>();
-            m_highlighter = GetComponent<ArenaHighlighter>();
         }
 
-        public void StartCombat()
+        public void StartCombat(IReadOnlyList<Entity> _enemies)
         {
-            StartCombat(m_playerPrefab, m_enemyPrefabs);
-        }
-
-        public void StartCombat(Entity _playerPrefab, IReadOnlyList<Entity> _enemyPrefabs)
-        {
+            gameObject.SetActive(true);
             if (IsCombatRunning)
                 return;
-            
+
             IsCombatRunning = true;
 
-            if (EntityManager.Instance != null)
-                EntityManager.Instance.onEntityUnregistered += Forget;
+            EntityManager.Instance.onEntityUnregistered += Forget;
 
             m_grid.BuildIfNeeded();
 
-            Player = SpawnPlayer(_playerPrefab);
-            SpawnEnemies(_enemyPrefabs);
+            PlaceEnemies(_enemies);
+            PlacePlayer();
 
             onCombatStarted?.Invoke();
         }
@@ -66,102 +53,85 @@ namespace Deckbuilder.Combat
 
             IsCombatRunning = false;
 
-            if (EntityManager.Instance != null)
-                EntityManager.Instance.onEntityUnregistered -= Forget;
+            EntityManager.Instance.onEntityUnregistered -= Forget;
 
-            for (int _i = m_spawnedEntities.Count - 1; _i >= 0; _i--)
-                Despawn(m_spawnedEntities[_i]);
+            foreach (Entity _entity in m_combatEntities)
+            {
+                ReleaseCell(_entity);
+                _entity.OnCombatExit();
+            }
 
-            m_spawnedEntities.Clear();
+            m_combatEntities.Clear();
             m_enemies.Clear();
-            Player = null;
+            _player = null;
 
-            m_highlighter.ClearAllLayers();
+            m_grid.ClearAllHighlights();
 
             onCombatEnded?.Invoke();
         }
 
         public Entity SpawnEntity(Entity _entityPrefab, GridCell _cell)
         {
-            if (_entityPrefab == null)
-            {
-                this.LogError("No entity prefab provided to spawn.");
-                return null;
-            }
-
-            if (_cell == null)
-            {
-                this.LogError("No cell provided to spawn entity on.");
-                return null;
-            }
-
             Entity _entity = LeanPool.Spawn(_entityPrefab, _cell.transform.position, _cell.transform.rotation);
+            PlaceOnCell(_entity, _cell);
 
-            if (!_cell.TrySetOccupant(_entity))
-                this.LogWarning($"Spawn cell {_cell.name} is already occupied.");
-
-            if (_entity.TryGetModule(out EntityGridModule _gridModule))
-                _gridModule.SetArena(this);
-
-            m_spawnedEntities.Add(_entity);
             return _entity;
         }
 
-        public void Despawn(Entity _entity)
+        private void PlaceEnemies(IReadOnlyList<Entity> _enemies)
         {
-            if (_entity == null)
-                return;
+            List<GridCell> _spawnCells = m_grid.GetFreeSpawnCells(CellType.EnemySpawn, true);
 
-            Forget(_entity);
-            LeanPool.Despawn(_entity);
-        }
-
-        public Entity SpawnPlayer(Entity _playerPrefab, bool _onRandomCell = false)
-        {
-            return SpawnOnSpawnCell(_playerPrefab, CellType.AllySpawn, _onRandomCell);
-        }
-
-        public Entity SpawnEnemy(Entity _enemyPrefab, bool _onRandomCell = true)
-        {
-            Entity _enemy = SpawnOnSpawnCell(_enemyPrefab, CellType.EnemySpawn, _onRandomCell);
-
-            if (_enemy != null)
-                m_enemies.Add(_enemy);
-
-            return _enemy;
-        }
-
-        public void SpawnEnemies(IReadOnlyList<Entity> _enemyPrefabs, bool _onRandomCells = false)
-        {
-            if (_enemyPrefabs == null)
-                return;
-
-            m_grid.BuildIfNeeded();
-
-            foreach (Entity _enemyPrefab in _enemyPrefabs)
-                SpawnEnemy(_enemyPrefab, _onRandomCells);
-        }
-
-        private Entity SpawnOnSpawnCell(Entity _entityPrefab, CellType _spawnCellType, bool _onRandomCell)
-        {
-            GridCell _spawnCell = m_grid.GetFreeSpawnCell(_spawnCellType, _onRandomCell);
-
-            if (_spawnCell == null)
+            for (int _i = 0; _i < _enemies.Count; _i++)
             {
-                this.LogError($"The grid has no free {_spawnCellType} cell, {_entityPrefab.name} cannot be spawned.");
-                return null;
-            }
+                if (_i >= _spawnCells.Count)
+                {
+                    this.LogError($"The grid has {_spawnCells.Count} free {CellType.EnemySpawn} cells for {_enemies.Count} enemies, the remaining ones are not placed.");
+                    return;
+                }
 
-            return SpawnEntity(_entityPrefab, _spawnCell);
+                PlaceOnCell(_enemies[_i], _spawnCells[_i]);
+                m_enemies.Add(_enemies[_i]);
+            }
+        }
+
+        private void PlacePlayer()
+        {
+            _player = EntityManager.Instance.Player;
+            GridCell _spawnCell = m_grid.GetFreeSpawnCell(CellType.AllySpawn);
+            
+            PlaceOnCell(_player, _spawnCell);
+        }
+
+        private void PlaceOnCell(Entity _entity, GridCell _cell)
+        {
+            _entity.transform.SetPositionAndRotation(_cell.transform.position, _cell.transform.rotation);
+
+            if (!_cell.TrySetOccupant(_entity))
+                this.LogWarning($"Cell {_cell.name} is already occupied by {_cell.Occupant.name}.");
+
+            if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
+                _combatMover.SetArena(this);
+
+            m_combatEntities.Add(_entity);
+            _entity.OnCombatEnter();
+        }
+
+        private void ReleaseCell(Entity _entity)
+        {
+            if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover) && _combatMover.CurrentCell != null && _combatMover.CurrentCell.Occupant == _entity)
+                _combatMover.CurrentCell.ClearOccupant();
         }
 
         private void Forget(Entity _entity)
         {
-            m_spawnedEntities.Remove(_entity);
+            ReleaseCell(_entity);
+
+            m_combatEntities.Remove(_entity);
             m_enemies.Remove(_entity);
 
-            if (Player == _entity)
-                Player = null;
+            if (_player == _entity)
+                _player = null;
         }
     }
 }

@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Deckbuilder.Grid.Highlighting;
 using UnityEngine;
+using Utils;
 
 namespace Deckbuilder.Grid
 {
-    [RequireComponent(typeof(CellHighlightVisual))]
     public class GridCell : MonoBehaviour
     {
         private const float SpawnGizmoSize = 0.8f;
@@ -13,14 +12,13 @@ namespace Deckbuilder.Grid
         private static readonly Color AllySpawnColor = new(0.2f, 0.9f, 0.4f, 1f);
         private static readonly Color EnemySpawnColor = new(1f, 0.3f, 0.25f, 1f);
 
-        [SerializeField] private CellHighlightVisual m_highlightVisual;
+        [SerializeField] private SerializableDictionary<HighlightLayer, GameObject> m_highlightVisuals = new();
         [SerializeField] private Vector2Int m_coordinate;
         [SerializeField] private CellType m_cellType;
         [SerializeField] private GameObject m_obstacleVisual;
 
         private readonly Dictionary<GridDirection, GridCell> m_neighbors = new();
 
-        public CellHighlightVisual HighlightVisual => m_highlightVisual;
         public Vector2Int Coordinate => m_coordinate;
         public CellType CellType => m_cellType;
         public Entity Occupant { get; private set; }
@@ -28,14 +26,10 @@ namespace Deckbuilder.Grid
         public bool IsObstacle => m_cellType == CellType.Obstacle;
         public bool IsWalkable => !IsObstacle && !IsOccupied;
 
-        private void Reset()
-        {
-            m_highlightVisual = GetComponent<CellHighlightVisual>();
-        }
-
         private void Awake()
         {
             UpdateObstacleVisual();
+            HideAllHighlights();
         }
 
         private void OnValidate()
@@ -52,6 +46,17 @@ namespace Deckbuilder.Grid
         {
             m_cellType = _cellType;
             UpdateObstacleVisual();
+        }
+
+        public void SetHighlight(HighlightLayer _layer, bool _visible)
+        {
+            m_highlightVisuals[_layer].SetActive(_visible);
+        }
+
+        public void HideAllHighlights()
+        {
+            foreach (GameObject _visual in m_highlightVisuals.Values)
+                _visual.SetActive(false);
         }
 
 #if UNITY_EDITOR
@@ -128,8 +133,8 @@ namespace Deckbuilder.Grid
 
             Occupant = _entity;
 
-            if (_entity.TryGetModule(out EntityGridModule _gridModule))
-                _gridModule.SetCurrentCell(this);
+            if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
+                _combatMover.SetCurrentCell(this);
 
             return true;
         }

@@ -3,14 +3,13 @@ using Deckbuilder.Actions;
 using Deckbuilder.Cards;
 using Deckbuilder.Combat;
 using Deckbuilder.Grid;
-using Deckbuilder.Grid.Highlighting;
 using Stats;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Deckbuilder.Player
 {
-    public class PlayerActionController : MonoBehaviour
+    public class PlayerActionController : EntityModule
     {
         private enum Mode
         {
@@ -18,7 +17,7 @@ namespace Deckbuilder.Player
             CardPreview
         }
 
-        [SerializeField] private Entity m_entity;
+        private static readonly List<GridCell> NoCells = new();
 
         [SerializeField] private CardConfig m_testCard;
         [SerializeField] private Key m_moveModeKey = Key.Digit1;
@@ -26,33 +25,42 @@ namespace Deckbuilder.Player
 
         [SerializeField] private LayerMask m_cellLayerMask = ~0;
 
-        [SerializeField] private Color m_moveRangeColor = new(0f, 1f, 0f, 0.4f);
-        [SerializeField] private Color m_movePathColor = new(0f, 1f, 0f, 0.8f);
-        [SerializeField] private Color m_targetZoneColor = new(0f, 0.5f, 1f, 0.5f);
-        [SerializeField] private Color m_targetZoneBlockedColor = new(0.4f, 0.4f, 0.4f, 0.4f);
-        [SerializeField] private Color m_effectZoneColor = new(1f, 0.5f, 0f, 0.6f);
-
         private Mode m_mode = Mode.Move;
         private GridCell m_hoveredCell;
         private Arena m_arena;
         private ArenaGrid m_grid;
-        private ArenaHighlighter m_highlighter;
 
-        private Entity ResolveEntity()
+        private readonly List<GridCell> m_targetCells = new();
+        private readonly List<GridCell> m_blockedTargetCells = new();
+
+        protected override void OnInitialize()
         {
-            if (m_entity != null)
-                return m_entity;
+            base.OnInitialize();
 
-            return EntityManager.Instance != null ? EntityManager.Instance.Player : null;
+            enabled = false;
         }
 
-        private bool ResolveArena(Entity _entity)
+        public override void OnCombatEnter()
         {
-            m_arena = _entity != null && _entity.TryGetModule(out EntityGridModule _gridModule) ? _gridModule.Arena : null;
-            m_grid = m_arena != null ? m_arena.Grid : null;
-            m_highlighter = m_arena != null ? m_arena.Highlighter : null;
+            base.OnCombatEnter();
 
-            return m_arena != null && m_grid != null && m_highlighter != null;
+            enabled = true;
+        }
+
+        public override void OnCombatExit()
+        {
+            base.OnCombatExit();
+
+            m_mode = Mode.Move;
+            enabled = false;
+        }
+
+        private bool ResolveArena()
+        {
+            m_arena = Owner.TryGetModule(out EntityCombatMoverModule _combatMover) ? _combatMover.Arena : null;
+            m_grid = m_arena != null ? m_arena.Grid : null;
+
+            return m_arena != null && m_grid != null;
         }
 
         private void Update()
@@ -60,15 +68,13 @@ namespace Deckbuilder.Player
             UpdateModeSwitch();
             UpdateHover();
 
-            Entity _entity = ResolveEntity();
-
-            if (!ResolveArena(_entity))
+            if (!ResolveArena())
                 return;
 
             if (m_mode == Mode.Move)
-                UpdateMoveMode(_entity);
+                UpdateMoveMode(Owner);
             else
-                UpdateCardPreviewMode(_entity);
+                UpdateCardPreviewMode(Owner);
         }
 
         private void UpdateModeSwitch()
@@ -109,27 +115,15 @@ namespace Deckbuilder.Player
                 return;
             }
 
-            int _movementPoints = GetMovementPoints(_entity);
-            List<GridCell> _reachable = m_grid.GetReachableCells(_entityCell, _movementPoints);
+            List<GridCell> _reachableCells = m_grid.GetReachableCells(_entityCell, GetMovementPoints(_entity));
+            m_grid.SetHighlightLayer(HighlightLayer.MovementRange, _reachableCells);
 
-            m_highlighter.ClearLayer(HighlightLayer.MovementRange);
-            m_highlighter.ClearLayer(HighlightLayer.MovementPath);
+            bool _isHoveredCellReachable = m_hoveredCell != null && _reachableCells.Contains(m_hoveredCell);
+            List<GridCell> _path = _isHoveredCellReachable ? m_grid.FindPath(_entityCell, m_hoveredCell) : null;
 
-            foreach (GridCell _cell in _reachable)
-                m_highlighter.Highlight(_cell, HighlightLayer.MovementRange, m_moveRangeColor);
+            m_grid.SetHighlightLayer(HighlightLayer.MovementPath, _path ?? NoCells);
 
-            bool _hoveredReachable = m_hoveredCell != null && _reachable.Contains(m_hoveredCell);
-            if (_hoveredReachable)
-            {
-                List<GridCell> _path = m_grid.FindPath(_entityCell, m_hoveredCell);
-                if (_path != null)
-                {
-                    foreach (GridCell _cell in _path)
-                        m_highlighter.Highlight(_cell, HighlightLayer.MovementPath, m_movePathColor);
-                }
-            }
-
-            if (_hoveredReachable && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            if (_isHoveredCellReachable && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
                 EnqueueMove(_entity, m_hoveredCell);
         }
 
@@ -137,35 +131,52 @@ namespace Deckbuilder.Player
         {
             ClearMoveHighlights();
 
-            m_highlighter.ClearLayer(HighlightLayer.TargetZone);
-            m_highlighter.ClearLayer(HighlightLayer.EffectZone);
-
             GridCell _entityCell = CardExecutor.GetEffectiveCell(_entity);
             if (_entityCell == null || m_testCard == null)
             {
+                ClearCardHighlights();
                 m_mode = Mode.Move;
                 return;
             }
 
-            foreach (GridCell _cell in GetCellsInZone(_entityCell.Coordinate, m_testCard.TargetZone.Shape, m_testCard.TargetZone.MaxRange, m_testCard.TargetZone.MinRange))
+            CollectTargetCells(_entity, _entityCell);
+            m_grid.SetHighlightLayer(HighlightLayer.TargetZone, m_targetCells);
+            m_grid.SetHighlightLayer(HighlightLayer.TargetZoneBlocked, m_blockedTargetCells);
+
+            bool _canTargetHoveredCell = m_hoveredCell != null && CardExecutor.CanTarget(m_arena, m_testCard, _entity, m_hoveredCell);
+
+            IEnumerable<GridCell> _effectCells = NoCells;
+            if (_canTargetHoveredCell)
+            {
+                ZoneDefinition _effectZone = m_testCard.EffectZone;
+                _effectCells = m_grid.GetCellsInZone(m_hoveredCell.Coordinate, _effectZone.Shape, _effectZone.MaxRange, _effectZone.MinRange);
+            }
+
+            m_grid.SetHighlightLayer(HighlightLayer.EffectZone, _effectCells);
+
+            if (_canTargetHoveredCell && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                EnqueueCard(_entity, m_hoveredCell);
+                m_mode = Mode.Move;
+            }
+        }
+
+        private void CollectTargetCells(Entity _entity, GridCell _entityCell)
+        {
+            m_targetCells.Clear();
+            m_blockedTargetCells.Clear();
+
+            ZoneDefinition _targetZone = m_testCard.TargetZone;
+
+            foreach (GridCell _cell in m_grid.GetCellsInZone(_entityCell.Coordinate, _targetZone.Shape, _targetZone.MaxRange, _targetZone.MinRange))
             {
                 bool _hasLineOfSight = !m_testCard.RequiresLineOfSight
                     || m_grid.HasLineOfSight(_entityCell, _cell, out GridCell _blockingCell, _entity);
 
-                Color _cellColor = _hasLineOfSight ? m_targetZoneColor : m_targetZoneBlockedColor;
-                m_highlighter.Highlight(_cell, HighlightLayer.TargetZone, _cellColor);
-            }
-
-            if (m_hoveredCell == null || !CardExecutor.CanTarget(m_arena, m_testCard, _entity, m_hoveredCell))
-                return;
-
-            foreach (GridCell _cell in GetCellsInZone(m_hoveredCell.Coordinate, m_testCard.EffectZone.Shape, m_testCard.EffectZone.MaxRange, m_testCard.EffectZone.MinRange))
-                m_highlighter.Highlight(_cell, HighlightLayer.EffectZone, m_effectZoneColor);
-
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                EnqueueCard(_entity, m_hoveredCell);
-                m_mode = Mode.Move;
+                if (_hasLineOfSight)
+                    m_targetCells.Add(_cell);
+                else
+                    m_blockedTargetCells.Add(_cell);
             }
         }
 
@@ -191,19 +202,15 @@ namespace Deckbuilder.Player
 
         private void ClearMoveHighlights()
         {
-            m_highlighter.ClearLayer(HighlightLayer.MovementRange);
-            m_highlighter.ClearLayer(HighlightLayer.MovementPath);
+            m_grid.ClearHighlightLayer(HighlightLayer.MovementRange);
+            m_grid.ClearHighlightLayer(HighlightLayer.MovementPath);
         }
 
         private void ClearCardHighlights()
         {
-            m_highlighter.ClearLayer(HighlightLayer.TargetZone);
-            m_highlighter.ClearLayer(HighlightLayer.EffectZone);
-        }
-
-        private IEnumerable<GridCell> GetCellsInZone(Vector2Int _origin, GridShape _shape, int _size, int _minSize = 0)
-        {
-            return m_grid.GetCellsInZone(_origin, _shape, _size, _minSize);
+            m_grid.ClearHighlightLayer(HighlightLayer.TargetZone);
+            m_grid.ClearHighlightLayer(HighlightLayer.TargetZoneBlocked);
+            m_grid.ClearHighlightLayer(HighlightLayer.EffectZone);
         }
     }
 }

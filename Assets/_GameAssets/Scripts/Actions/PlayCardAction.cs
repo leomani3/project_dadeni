@@ -24,8 +24,8 @@ namespace Deckbuilder.Actions
 
         public IEnumerator Execute()
         {
-            if (m_caster.TryGetModule(out EntityGridModule _gridModule))
-                _gridModule.FaceTowards(m_targetCell.transform.position);
+            if (m_caster.TryGetModule(out EntityCombatMoverModule _combatMover))
+                _combatMover.FaceTowards(m_targetCell.transform.position);
 
             if (m_card.CastAnimation != null && m_caster.TryGetModule(out EntityAnimationModule _animationModule))
                 yield return _animationModule.PlayCast(m_card.CastAnimation, ApplyCard);

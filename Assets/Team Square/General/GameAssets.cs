@@ -9,6 +9,12 @@ public class GameAssets : ScriptableObject
     private static GameAssets _instance;
     public static GameAssets Instance => _instance ?? Load();
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticInstance()
+    {
+        _instance = null;
+    }
+
     private static GameAssets Load()
     {
         _instance = Resources.Load<GameAssets>("GameAssets");

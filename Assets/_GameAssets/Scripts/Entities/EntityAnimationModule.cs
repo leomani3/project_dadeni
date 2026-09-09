@@ -17,6 +17,7 @@ public class EntityAnimationModule : EntityModule
     private AnimatorOverrideController m_overrideController;
     private Action m_pendingTriggerCallback;
     private bool m_pendingCompletion;
+    private float m_targetLocomotionSpeed;
 
     protected override void OnInitialize()
     {
@@ -31,10 +32,25 @@ public class EntityAnimationModule : EntityModule
 
     public void SetLocomotionSpeed(float _normalizedSpeed)
     {
+        m_targetLocomotionSpeed = _normalizedSpeed;
+    }
+
+    private void Update()
+    {
         if (m_animator == null)
             return;
 
-        m_animator.SetFloat(SpeedParameterName, _normalizedSpeed, m_speedDamping, Time.deltaTime);
+        m_animator.SetFloat(SpeedParameterName, m_targetLocomotionSpeed, m_speedDamping, Time.deltaTime);
+    }
+
+    public override void Cleanup()
+    {
+        base.Cleanup();
+
+        m_targetLocomotionSpeed = 0f;
+
+        if (m_animator != null)
+            m_animator.SetFloat(SpeedParameterName, 0f);
     }
 
     public IEnumerator PlayCast(AnimationClip _clip, Action _onTrigger)

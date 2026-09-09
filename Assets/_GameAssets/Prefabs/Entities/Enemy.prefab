@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3000000000002222222}
+  - component: {fileID: 3045683667596132265}
+  - component: {fileID: 5560497807694295310}
   - component: {fileID: 3000000000003333333}
   - component: {fileID: 3000000000004444444}
   - component: {fileID: 3000000000005555555}
@@ -16,7 +18,6 @@ GameObject:
   - component: {fileID: 3000000000007777777}
   - component: {fileID: 3000000000008888888}
   - component: {fileID: 3000000000009999999}
-  - component: {fileID: 7197944948926474947}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -40,6 +41,56 @@ Transform:
   - {fileID: 3000000000013333332}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &3045683667596132265
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3000000000001111111}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 1
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 0
+--- !u!136 &5560497807694295310
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3000000000001111111}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3000000000003333333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49,21 +100,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3000000000001111111}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 091f179f2e7008f4abefaa9b6eb0e7cb, type: 3}
+  m_Script: {fileID: 11500000, guid: f17bf2a9bc472884c8eb96ced15d6b87, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Entity
+  m_EditorClassIdentifier: Assembly-CSharp::Enemy
   _animator: {fileID: 0}
-  _collider: {fileID: 0}
-  _modelTransform: {fileID: 3000000000013333332}
-  _knockUpHeightCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  _collider: {fileID: 5560497807694295310}
   _entityType: 2
-  _staggerAnimationState: Staggered
-  _staggerVariationAnimatorParameter: StaggerVariation
+  _fightStartDistance: 1.5
 --- !u!114 &3000000000004444444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,7 +165,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5f3fae4573dcfd0502754105938eefe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityGridModule
+  m_EditorClassIdentifier: Assembly-CSharp::EntityCombatMoverModule
   m_moveSpeed: 5
   m_rotationSpeed: 10
 --- !u!114 &3000000000008888888
@@ -151,19 +194,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EntityAnimationModule
   m_animator: {fileID: 0}
   m_speedDamping: 0.12
---- !u!114 &7197944948926474947
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3000000000001111111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a309479bef9944a981643300695c77e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CursorTarget
-  m_cursorType: 10
 --- !u!1 &3000000000012222221
 GameObject:
   m_ObjectHideFlags: 0
