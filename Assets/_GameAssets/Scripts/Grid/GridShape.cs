@@ -61,7 +61,9 @@ namespace Deckbuilder.Grid
             for (int _offset = -_size; _offset <= _size; _offset++)
             {
                 yield return new Vector2Int(_offset, 0);
-                yield return new Vector2Int(0, _offset);
+
+                if (_offset != 0)
+                    yield return new Vector2Int(0, _offset);
             }
         }
 

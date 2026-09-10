@@ -80,6 +80,10 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1959236317963365998, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
+      propertyPath: _displayName
+      value: Skeleton
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

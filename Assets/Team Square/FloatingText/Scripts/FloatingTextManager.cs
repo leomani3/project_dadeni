@@ -1,27 +1,26 @@
 using Lean.Pool;
 using MyBox;
 using UnityEngine;
+using Utils;
 
 public class FloatingTextManager : Singleton<FloatingTextManager>
 {
-    [SerializeField] private UIFloatingText _uiFloatingTextPrefab;
-    [SerializeField] private WorldFloatingText _worldFloatingTextPrefab;
-    [SerializeField] private Transform _uiTextParent;
-    [SerializeField] private FloatingTextConfig m_defaultConfig;
+    [SerializeField] private FloatingText _floatingTextPrefab;
+    [SerializeField] private RectTransform _textParent;
+    [SerializeField] private SerializableDictionary<FloatingTextType, FloatingTextConfig> _configs = new SerializableDictionary<FloatingTextType, FloatingTextConfig>();
 
-    public void SpawnUIText(Vector3 screenPos, string text, FloatingTextConfig config)
+    public void SpawnWorldText(Vector3 worldPosition, string message, FloatingTextType type)
     {
-        Transform parent = _uiTextParent != null ? _uiTextParent : transform;
-
-        UIFloatingText spawnedText = LeanPool.Spawn(_uiFloatingTextPrefab, screenPos, Quaternion.identity, parent);
-        spawnedText.Init(text, config != null ? config : m_defaultConfig);
-        spawnedText.Play();
+        SpawnText().PlayAtWorldPosition(worldPosition, message, _configs[type]);
     }
 
-    public void SpawnWorldText(Vector3 worldpos, string text, FloatingTextConfig config = null)
+    public void SpawnScreenText(Vector3 screenPosition, string message, FloatingTextType type)
     {
-        WorldFloatingText spawnedText = LeanPool.Spawn(_worldFloatingTextPrefab, worldpos, Quaternion.identity);
-        spawnedText.Init(text, config != null ? config : m_defaultConfig);
-        spawnedText.Play();
+        SpawnText().PlayAtScreenPosition(screenPosition, message, _configs[type]);
+    }
+
+    private FloatingText SpawnText()
+    {
+        return LeanPool.Spawn(_floatingTextPrefab, _textParent);
     }
 }

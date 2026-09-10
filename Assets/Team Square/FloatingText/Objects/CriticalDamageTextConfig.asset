@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 255e73c5b0e0bb641b23e8f2aff8a99e, type: 3}
-  m_Name: DefaultTextConfig
+  m_Name: CriticalDamageTextConfig
   m_EditorClassIdentifier: Assembly-CSharp::FloatingTextConfig
-  color: {r: 1, g: 1, b: 1, a: 1}
+  color: {r: 1, g: 0.72, b: 0.1, a: 1}
   font: {fileID: 11400000, guid: a5d22f97e3744534e8effd3e64a2c8b2, type: 2}
-  fontSize: 22
+  fontSize: 34
   spawnDuration: 0.25
   enableScaleIn: 1
   scaleInEase: 18
   enableFadeIn: 1
-  stayDuration: 0.35
+  stayDuration: 0.45
   despawnDuration: 0.25
   enableScaleOut: 0
   enableFadeOut: 1

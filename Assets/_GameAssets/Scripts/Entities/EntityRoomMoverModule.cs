@@ -17,6 +17,7 @@ public class EntityRoomMoverModule : EntityModule
     private bool m_hasDestination;
 
     public bool IsMoving => m_hasDestination;
+    public bool CanMove => enabled && m_agent.isActiveAndEnabled && m_agent.isOnNavMesh;
     public Vector3 Destination => m_agent.destination;
 
     public override void OnAllModuleInitialized()
@@ -53,7 +54,9 @@ public class EntityRoomMoverModule : EntityModule
         base.OnCombatExit();
 
         m_agent.enabled = true;
-        m_agent.Warp(transform.position);
+
+        if (!m_agent.Warp(transform.position))
+            this.LogWarning($"Could not place the agent back on the NavMesh at {transform.position}.");
 
         Owner.Collider.enabled = true;
         enabled = true;
@@ -66,6 +69,9 @@ public class EntityRoomMoverModule : EntityModule
 
     public bool MoveTo(Vector3 _worldPosition, float _stopDistance, Action _onDestinationReached = null)
     {
+        if (!CanMove)
+            return false;
+
         if (!NavMesh.SamplePosition(_worldPosition, out NavMeshHit _hit, NavMeshSampleDistance, NavMesh.AllAreas))
             return false;
 

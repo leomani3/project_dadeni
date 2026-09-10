@@ -7,7 +7,6 @@ using UnityEngine;
 public class EntityCombatMoverModule : EntityModule
 {
     [SerializeField] private float m_moveSpeed = 5f;
-    [SerializeField] private float m_rotationSpeed = 10f;
 
     public Arena Arena { get; private set; }
     public ArenaGrid Grid => Arena != null ? Arena.Grid : null;
@@ -130,7 +129,7 @@ public class EntityCombatMoverModule : EntityModule
             float _t = Mathf.Clamp01(_elapsed / _duration);
 
             transform.position = Vector3.Lerp(_startPosition, _endPosition, _t);
-            transform.rotation = Quaternion.Slerp(transform.rotation, _targetRotation, Time.deltaTime * m_rotationSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, _targetRotation, Time.deltaTime * 20);
 
             yield return null;
         }

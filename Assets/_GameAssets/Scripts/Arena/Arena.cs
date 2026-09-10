@@ -105,6 +105,7 @@ namespace Deckbuilder.Combat
 
         private void PlaceOnCell(Entity _entity, GridCell _cell)
         {
+            _entity.OnCombatEnter();
             _entity.transform.SetPositionAndRotation(_cell.transform.position, _cell.transform.rotation);
 
             if (!_cell.TrySetOccupant(_entity))
@@ -114,7 +115,6 @@ namespace Deckbuilder.Combat
                 _combatMover.SetArena(this);
 
             m_combatEntities.Add(_entity);
-            _entity.OnCombatEnter();
         }
 
         private void ReleaseCell(Entity _entity)
