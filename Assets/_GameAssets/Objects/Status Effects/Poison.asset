@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1349c8bde035ad897f9aa6b8a03e5964, type: 3}
-  m_Name: Vulnerable
+  m_Name: Poison
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.StatusEffects.StatusEffectConfig
-  m_id: status.vulnerable
-  m_type: 0
-  m_displayName: Vulnerable
-  m_icon: {fileID: 21300000, guid: 88ac4d15c9814924b8aa1606bb3a1c8a, type: 3}
-  m_description: Take more damage
-  m_decayTiming: 2
+  m_id: status.poison
+  m_type: 3
+  m_displayName: Poison
+  m_icon: {fileID: 21300000, guid: 35304d6277e04be89e05ebdf1e774ca7, type: 3}
+  m_description: Deals damage at the start of each turn, then decreases by 1
+  m_decayTiming: 1
   m_isDebuff: 1
-  m_potency: 50
+  m_potency: 1

@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Weak
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.StatusEffects.StatusEffectConfig
   m_id: status.weak
+  m_type: 1
   m_displayName: Weak
-  m_icon: {fileID: 0}
+  m_icon: {fileID: 21300000, guid: a269f05d83244874bc4ddda8fc1dcba4, type: 3}
   m_description: Deal less damage
+  m_decayTiming: 2
+  m_isDebuff: 1
+  m_potency: 25
