@@ -6,7 +6,6 @@ public class Bootstraper : MonoBehaviour
 {
     private const string INIT_SCENE = "InitScene";
     private const string MENU_SCENE = "MenuScene";
-    private const string MAIN_SCENE = "MainScene";
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static async Task Init()
@@ -29,7 +28,7 @@ public class Bootstraper : MonoBehaviour
     private static void LoadSceneAfterInit()
     {
         if (GameConfig.Instance.cheatSettings.noMenu)
-            SceneManager.LoadSceneAsync(MAIN_SCENE, LoadSceneMode.Single);
+            RunManager.Instance.StartRun();
         else
             SceneManager.LoadSceneAsync(MENU_SCENE, LoadSceneMode.Single);
     }

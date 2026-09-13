@@ -12,7 +12,7 @@ This project is dedicated to building a roguelike deckbuilding game with tactica
 
 Everything goes through the Unity Editor — there is no CLI build script, no test assembly, and no lint config.
 
-- Play mode entry: any scene works (see Bootstrap below). Scenes are `Assets/_GameAssets/Scenes/{InitScene, MenuScene, MainScene}.unity`, in that build order.
+- Play mode entry: any scene works (see Bootstrap below). Scenes are `Assets/_GameAssets/Scenes/{InitScene, MenuScene, MainScene, CombatScene}.unity`, in that build order.
 - `*.csproj` / `*.sln` at the repo root are Unity-generated (there are four stale `.sln` files from prior template renames). Never edit them; they are rewritten on asset import.
 - `com.unity.test-framework` is installed but no test asmdef or test folder exists yet. Adding tests means creating a Tests folder + asmdef first.
 - **No asmdefs exist for game code** — everything under `_GameAssets/` and `Team Square/` compiles into `Assembly-CSharp`, and `Assets/Plugins/` into `Assembly-CSharp-firstpass`. Any new script can see any other without wiring references.
@@ -34,7 +34,7 @@ Odin Inspector (Sirenix), DOTween (Demigiant), Easy Save 3, Lean Pool (CW), MyBo
 - **GameData** — *the save file*. Persisted with Easy Save 3 (`ES3.Save("GameData", this)` / `ES3.LoadInto`) into the same ScriptableObject instance. Runtime-only fields and `Action`s must be marked `[ES3NonSerializable]`. Writes set `isDirty`; `SaveManager` flushes every 5s and on `OnApplicationQuit`. Because save data loads *into the asset*, playing in the editor mutates the checked-in `GameData.asset` — use `GameData.ResetGameData()` or `cheatSettings.startResetData` to get a clean state.
 
 ### MonoBehaviour singletons
-Managers derive from MyBox `Singleton<T>`: `Instance` lazily does `FindObjectOfType` and **never auto-creates**, so every manager (`GameManager`, `UIManager`, `SoundManager`, `StatManager`, `EntityManager`, `TutorialManager`, `FadeManager`, `CameraManager`/`CameraController`, `FloatingTextManager`, `FlyingParticleManager`, `SaveManager`, `LevelManager`) must live in a loaded scene. `InitializeSingleton(persistent)` is the opt-in for `DontDestroyOnLoad` + duplicate destruction.
+Managers derive from MyBox `Singleton<T>`: `Instance` lazily does `FindObjectOfType` and **never auto-creates**, so every manager (`GameManager`, `UIManager`, `SoundManager`, `StatManager`, `EntityManager`, `TutorialManager`, `FadeManager`, `CameraManager`/`CameraController`, `FloatingTextManager`, `FlyingParticleManager`, `SaveManager`) must live in a loaded scene. `InitializeSingleton(persistent)` is the opt-in for `DontDestroyOnLoad` + duplicate destruction.
 
 ### UI stack (4 layers, init cascades downward)
 `UIManager` (registers every child `CanvasHandler` **by its concrete Type** in `Awake`, `GetCanvas<T>()`) → `CanvasHandler` (owns a `Canvas`, opens/closes its `UIContainer`s, disables the Canvas only after all containers finish closing; `GetContainer<T>()`) → `UIContainer` (DOTween fade/move in-out, `EnableByDefault`, `OnCloseComplete`) → `AUIElement` (`Init`/`Show`/`Hide`, base of `CustomButton`, currency widgets, …).
@@ -57,7 +57,7 @@ Each axis has a **definition** tier (persistent, what meta-progression modifies)
 ### Entity system (`Team Square/Entity System/`)
 `Entity` is the composition root: it holds the `EntityType`, discovers its `EntityModule` components and drives their lifecycle — `Initialize`/`OnInitialize` per module → `OnAllModuleInitialized` once all exist → `Cleanup` on despawn. Modules find each other through `Entity.TryGetModule<T>()` rather than direct references, and the module dictionary is keyed by every type in the inheritance chain, so `TryGetModule<EntityHealthModule>()` also finds a subclass.
 
-`Entity` implements LeanPool's `IPoolable`: `OnSpawn` initializes modules and registers with `EntityManager`; `OnDespawn` cleans them up. `EntityManager` is the runtime registry (all entities, enemies, player, entity-by-collider) — nothing needs a scene search.
+`Entity` implements LeanPool's `IPoolable`: `OnSpawn` initializes modules and registers with `EntityManager`; `OnDespawn` cleans them up. `EntityManager` is the runtime registry (all entities, enemies, entity-by-collider) — nothing needs a scene search. The player is owned by `RunManager`, not the registry. `Entity.OnDestroy` unregisters too, because scene unloads destroy entities without despawning them.
 
 Shipped modules: `EntityStatModule` (instance stats), `EntityHealthModule` (health/damage/death, MaxHealth read from the stats), `EntityTeamModule` (`Team.Player`/`Team.Enemy`, drives EntityManager bucketing), `EntitySpawnModule` (spawn animation + VFX window), `EntitySheenModule` (white emission flash on hit). Game-specific reactions belong in listeners of `EntityHealthModule`'s events or in a subclass overriding `PlayDamageFeedback` / `Die`.
 
@@ -66,6 +66,8 @@ Shipped modules: `EntityStatModule` (instance stats), `EntityHealthModule` (heal
 
 ### Run lifecycle
 `GameManager.StartRun()` / `ResetRun()`: fade → `LeanPool.DespawnAll()` + despawn tutorials → deplete `gameSettings.resetedCurrency` → `GameData.ResetRun()`. `OnRunStart` / `OnRunEnd` are the hooks for game code. `GameManager` is `partial`, so run logic specific to the deckbuilder belongs in a second file under `_GameAssets/Scripts/`.
+
+`RunManager` (persistent, InitScene) owns the deckbuilder run: it instantiates the player under itself so it survives scene loads (spawned at the world origin for now), and passes combat input across scenes. `StartCombat(enemyPrefabs)` stores `CurrentEnemyGroup` + the player's pose and single-loads `CombatScene`; `CombatManager.Start` reads `RunManager.Player`/`CurrentEnemyGroup`, spawns the enemies on the grid and places the player. `CombatManager.EndCombat` → `RunManager.EndCombat` reloads `MainScene`, restores the pose and only then calls `Player.OnCombatExit()` (the NavMeshAgent warp needs MainScene's NavMesh). MainScene is rebuilt from scratch on return.
 
 ### Currency
 `CurrencyAsset` (SO) wraps the `Currency` enum plus icon / display name / TMP sprite tag. `GameData.currencies` is keyed by the **enum**, so renaming or reordering `Currency` members invalidates existing saves. Currency gains can auto-feed tracked values via `CurrencyAsset.trackedValuesWithCurrencyGained`.

@@ -1,14 +1,10 @@
 using System.Collections.Generic;
-using Deckbuilder.Combat;
-using UnityEngine;
 
 public class FightRoom : Room
 {
-    [SerializeField] private Arena _arena;
-
-    public void Init(List<Entity> enemies)
+    public void Init(IReadOnlyList<Entity> _enemyPrefabs)
     {
-        _arena.StartCombat(enemies);
+        RunManager.Instance.StartCombat(_enemyPrefabs);
     }
 
     public override void Enter()

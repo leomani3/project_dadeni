@@ -72,6 +72,11 @@ public class Entity : MonoBehaviour, IPoolable
         RegisterInEntityManager();
     }
 
+    private void OnDestroy()
+    {
+        RemoveFromEntityManager();
+    }
+
     private void InitializeModules()
     {
         if (_modulesInitialized) return;

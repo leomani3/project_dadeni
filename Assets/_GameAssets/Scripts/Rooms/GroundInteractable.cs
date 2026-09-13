@@ -20,7 +20,7 @@ public class GroundInteractable : MonoBehaviour, IInteractable
 
         Vector3 _destination = _eventData.pointerPressRaycast.worldPosition;
 
-        EntityManager.Instance.Player.TryGetModule(out EntityRoomMoverModule _roomMover);
+        RunManager.Instance.Player.TryGetModule(out EntityRoomMoverModule _roomMover);
 
         if (!_roomMover.MoveTo(_destination))
             return;

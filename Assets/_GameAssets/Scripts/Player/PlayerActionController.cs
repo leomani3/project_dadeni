@@ -26,7 +26,7 @@ namespace Deckbuilder.Player
 
         private Mode m_mode = Mode.Move;
         private GridCell m_hoveredCell;
-        private Arena m_arena;
+        private CombatManager m_combatManager;
         private ArenaGrid m_grid;
 
         private readonly List<GridCell> m_targetCells = new();
@@ -53,7 +53,7 @@ namespace Deckbuilder.Player
             m_mode = Mode.Move;
             enabled = false;
 
-            ResolveArena();
+            ResolveCombatManager();
             m_grid.ClearAllHighlights();
         }
 
@@ -65,12 +65,12 @@ namespace Deckbuilder.Player
             enabled = false;
         }
 
-        private bool ResolveArena()
+        private bool ResolveCombatManager()
         {
-            m_arena = Owner.TryGetModule(out EntityCombatMoverModule _combatMover) ? _combatMover.Arena : null;
-            m_grid = m_arena != null ? m_arena.Grid : null;
+            m_combatManager = Owner.TryGetModule(out EntityCombatMoverModule _combatMover) ? _combatMover.CombatManager : null;
+            m_grid = m_combatManager != null ? m_combatManager.Grid : null;
 
-            return m_arena != null && m_grid != null;
+            return m_combatManager != null && m_grid != null;
         }
 
         private void Update()
@@ -78,7 +78,7 @@ namespace Deckbuilder.Player
             UpdateModeSwitch();
             UpdateHover();
 
-            if (!ResolveArena())
+            if (!ResolveCombatManager())
                 return;
 
             if (m_mode == Mode.Move)
@@ -156,7 +156,7 @@ namespace Deckbuilder.Player
             m_grid.SetHighlightLayer(HighlightLayer.TargetZone, m_targetCells);
             m_grid.SetHighlightLayer(HighlightLayer.TargetZoneBlocked, m_blockedTargetCells);
 
-            bool _canTargetHoveredCell = m_hoveredCell != null && CardExecutor.CanTarget(m_arena, m_testCard, _entity, m_hoveredCell);
+            bool _canTargetHoveredCell = m_hoveredCell != null && CardExecutor.CanTarget(m_combatManager, m_testCard, _entity, m_hoveredCell);
 
             IEnumerable<GridCell> _effectCells = NoCells;
             if (_canTargetHoveredCell)
@@ -202,7 +202,7 @@ namespace Deckbuilder.Player
         private void EnqueueCard(Entity _entity, GridCell _targetCell)
         {
             if (_entity.TryGetModule(out EntityActionQueueModule _queue))
-                _queue.Enqueue(new PlayCardAction(m_arena, m_testCard, _entity, _targetCell));
+                _queue.Enqueue(new PlayCardAction(m_combatManager, m_testCard, _entity, _targetCell));
         }
 
         private int GetRemainingMovementPoints(Entity _entity)

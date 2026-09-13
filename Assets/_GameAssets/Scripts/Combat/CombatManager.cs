@@ -10,7 +10,7 @@ using Utils;
 namespace Deckbuilder.Combat
 {
     [RequireComponent(typeof(ArenaGrid))]
-    public class Arena : MonoBehaviour
+    public class CombatManager : MonoBehaviour
     {
         public Action onCombatStarted;
         public Action onCombatEnded;
@@ -23,11 +23,9 @@ namespace Deckbuilder.Combat
         public bool IsCombatRunning { get; private set; }
         public bool IsPlayerTurn { get; private set; }
 
-        private readonly List<Entity> m_combatEntities = new();
         private readonly List<Entity> m_enemies = new();
         private readonly List<Entity> m_enemiesTakingTurn = new();
-        private readonly Dictionary<Entity, Pose> m_posesBeforeCombat = new();
-        private Entity _player;
+        private Entity m_player;
         private CombatCanvas m_combatCanvas;
         private Coroutine m_enemyTurnsRoutine;
 
@@ -36,20 +34,21 @@ namespace Deckbuilder.Combat
             m_grid = GetComponent<ArenaGrid>();
         }
 
-        public void StartCombat(IReadOnlyList<Entity> _enemies)
+        private void Start()
         {
-            gameObject.SetActive(true);
-            if (IsCombatRunning)
-                return;
+            StartCombat(RunManager.Instance.Player, RunManager.Instance.CurrentEnemyGroup);
+        }
 
+        private void StartCombat(Entity _player, IReadOnlyList<Entity> _enemyPrefabs)
+        {
             IsCombatRunning = true;
 
             EntityManager.Instance.onEntityUnregistered += Forget;
 
             m_grid.BuildIfNeeded();
 
-            PlaceEnemies(_enemies);
-            PlacePlayer();
+            SpawnEnemies(_enemyPrefabs);
+            PlacePlayer(_player);
 
             m_combatCanvas = UIManager.Instance.GetCanvas<CombatCanvas>();
             m_combatCanvas.onEndTurnClicked += EndPlayerTurn;
@@ -77,23 +76,6 @@ namespace Deckbuilder.Combat
 
             EntityManager.Instance.onEntityUnregistered -= Forget;
 
-            foreach (Entity _entity in m_combatEntities)
-            {
-                ReleaseCell(_entity);
-
-                Pose _poseBeforeCombat = m_posesBeforeCombat[_entity];
-                _entity.transform.SetPositionAndRotation(_poseBeforeCombat.position, _poseBeforeCombat.rotation);
-
-                _entity.OnCombatExit();
-            }
-
-            m_combatEntities.Clear();
-            m_enemies.Clear();
-            m_posesBeforeCombat.Clear();
-            _player = null;
-
-            m_grid.ClearAllHighlights();
-
             m_combatCanvas.onEndTurnClicked -= EndPlayerTurn;
             m_combatCanvas.onEndCombatClicked -= EndCombat;
             m_combatCanvas.Close();
@@ -101,7 +83,7 @@ namespace Deckbuilder.Combat
 
             onCombatEnded?.Invoke();
 
-            gameObject.SetActive(false);
+            RunManager.Instance.EndCombat();
         }
 
         public void EndPlayerTurn()
@@ -125,18 +107,18 @@ namespace Deckbuilder.Combat
         private void StartPlayerTurn()
         {
             IsPlayerTurn = true;
-            _player.OnTurnStart();
+            m_player.OnTurnStart();
             m_combatCanvas.SetEndTurnButtonInteractable(true);
         }
 
         private IEnumerator PlayEnemyTurns()
         {
-            _player.TryGetModule(out EntityActionQueueModule _playerActionQueue);
+            m_player.TryGetModule(out EntityActionQueueModule _playerActionQueue);
 
             while (_playerActionQueue.IsProcessing)
                 yield return null;
 
-            _player.OnTurnEnd();
+            m_player.OnTurnEnd();
 
             m_enemiesTakingTurn.Clear();
             m_enemiesTakingTurn.AddRange(m_enemies);
@@ -161,35 +143,32 @@ namespace Deckbuilder.Combat
             _enemy.OnTurnEnd();
         }
 
-        private void PlaceEnemies(IReadOnlyList<Entity> _enemies)
+        private void SpawnEnemies(IReadOnlyList<Entity> _enemyPrefabs)
         {
             List<GridCell> _spawnCells = m_grid.GetFreeSpawnCells(CellType.EnemySpawn, true);
 
-            for (int _i = 0; _i < _enemies.Count; _i++)
+            for (int _i = 0; _i < _enemyPrefabs.Count; _i++)
             {
                 if (_i >= _spawnCells.Count)
                 {
-                    this.LogError($"The grid has {_spawnCells.Count} free {CellType.EnemySpawn} cells for {_enemies.Count} enemies, the remaining ones are not placed.");
+                    this.LogError($"The grid has {_spawnCells.Count} free {CellType.EnemySpawn} cells for {_enemyPrefabs.Count} enemies, the remaining ones are not spawned.");
                     return;
                 }
 
-                PlaceOnCell(_enemies[_i], _spawnCells[_i]);
-                m_enemies.Add(_enemies[_i]);
+                m_enemies.Add(SpawnEntity(_enemyPrefabs[_i], _spawnCells[_i]));
             }
         }
 
-        private void PlacePlayer()
+        private void PlacePlayer(Entity _player)
         {
-            _player = EntityManager.Instance.Player;
+            m_player = _player;
             GridCell _spawnCell = m_grid.GetFreeSpawnCell(CellType.AllySpawn);
 
-            PlaceOnCell(_player, _spawnCell);
+            PlaceOnCell(m_player, _spawnCell);
         }
 
         private void PlaceOnCell(Entity _entity, GridCell _cell)
         {
-            m_posesBeforeCombat[_entity] = new Pose(_entity.transform.position, _entity.transform.rotation);
-
             _entity.OnCombatEnter();
             _entity.transform.SetPositionAndRotation(_cell.transform.position, _cell.transform.rotation);
 
@@ -197,9 +176,7 @@ namespace Deckbuilder.Combat
                 this.LogWarning($"Cell {_cell.name} is already occupied by {_cell.Occupant.name}.");
 
             if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
-                _combatMover.SetArena(this);
-
-            m_combatEntities.Add(_entity);
+                _combatMover.SetCombatManager(this);
         }
 
         private void ReleaseCell(Entity _entity)
@@ -212,12 +189,10 @@ namespace Deckbuilder.Combat
         {
             ReleaseCell(_entity);
 
-            m_combatEntities.Remove(_entity);
             m_enemies.Remove(_entity);
-            m_posesBeforeCombat.Remove(_entity);
 
-            if (_player == _entity)
-                _player = null;
+            if (m_player == _entity)
+                m_player = null;
         }
     }
 }

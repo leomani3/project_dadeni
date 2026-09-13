@@ -9,8 +9,8 @@ public class EntityCombatMoverModule : EntityModule
 {
     [SerializeField] private float m_moveSpeed = 5f;
 
-    public Arena Arena { get; private set; }
-    public ArenaGrid Grid => Arena != null ? Arena.Grid : null;
+    public CombatManager CombatManager { get; private set; }
+    public ArenaGrid Grid => CombatManager != null ? CombatManager.Grid : null;
     public GridCell CurrentCell { get; private set; }
     public GridCell DestinationCell { get; private set; }
     public bool IsMoving { get; private set; }
@@ -45,9 +45,9 @@ public class EntityCombatMoverModule : EntityModule
         ResetCombatState();
     }
 
-    public void SetArena(Arena _arena)
+    public void SetCombatManager(CombatManager _combatManager)
     {
-        Arena = _arena;
+        CombatManager = _combatManager;
     }
 
     public void SetCurrentCell(GridCell _cell)
@@ -108,7 +108,7 @@ public class EntityCombatMoverModule : EntityModule
             m_moveRoutine = null;
         }
 
-        Arena = null;
+        CombatManager = null;
         CurrentCell = null;
         DestinationCell = null;
         IsMoving = false;

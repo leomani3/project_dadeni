@@ -6,15 +6,15 @@ namespace Deckbuilder.Cards.Actions
 {
     public readonly struct CardActionContext
     {
-        public readonly Arena Arena;
+        public readonly CombatManager CombatManager;
         public readonly CardConfig Card;
         public readonly Entity Caster;
         public readonly GridCell TargetCell;
         public readonly IReadOnlyList<Entity> EntitiesInEffectZone;
 
-        public CardActionContext(Arena _arena, CardConfig _card, Entity _caster, GridCell _targetCell, IReadOnlyList<Entity> _entitiesInEffectZone)
+        public CardActionContext(CombatManager _combatManager, CardConfig _card, Entity _caster, GridCell _targetCell, IReadOnlyList<Entity> _entitiesInEffectZone)
         {
-            Arena = _arena;
+            CombatManager = _combatManager;
             Card = _card;
             Caster = _caster;
             TargetCell = _targetCell;

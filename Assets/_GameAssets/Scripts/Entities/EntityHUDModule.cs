@@ -38,6 +38,12 @@ public class EntityHUDModule : EntityModule
         DespawnHUD();
     }
 
+    private void OnDestroy()
+    {
+        if (_hud != null)
+            Destroy(_hud.gameObject);
+    }
+
     private void SpawnHUD()
     {
         Transform canvasTransform = UIManager.Instance.GetCanvas<RunCanvas>().transform;

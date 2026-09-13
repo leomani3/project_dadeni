@@ -21,7 +21,7 @@ public class Enemy : Entity, IInteractable
         if (_eventData.button != PointerEventData.InputButton.Left)
             return;
 
-        Entity _player = EntityManager.Instance.Player;
+        Entity _player = RunManager.Instance.Player;
 
         _player.TryGetModule(out EntityRoomMoverModule _roomMover);
         _roomMover.MoveTo(transform.position, _fightStartDistance, QueryFight);

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Deckbuilder.Combat;
 using Lean.Pool;
 using UnityEngine;
 using Utils;
@@ -13,20 +12,12 @@ public class EntityGroup : MonoBehaviour
     [SerializeField] private float _spawnRadius = 3f;
     [SerializeField] private float _minDistanceBetweenEntities = 1.5f;
 
-    [Header("debug")]
-    [SerializeField] private Arena _arena;
-
     private readonly List<Entity> _entities = new List<Entity>();
+    private readonly List<Entity> _spawnedEntityPrefabs = new List<Entity>();
 
     private void Awake()
     {
-        _arena.onCombatEnded += Clear;
         Init(_entityPrefabs);
-    }
-
-    private void OnDestroy()
-    {
-        _arena.onCombatEnded -= Clear;
     }
 
     public void Init(IReadOnlyList<Entity> _entitiesToSpawn)
@@ -44,6 +35,7 @@ public class EntityGroup : MonoBehaviour
         _healthModule.OnDeathStart += () => Forget(_entity);
 
         _entities.Add(_entity);
+        _spawnedEntityPrefabs.Add(_entityPrefab);
 
         return _entity;
     }
@@ -51,18 +43,10 @@ public class EntityGroup : MonoBehaviour
     private void Forget(Entity _entity)
     {
         _entity.onFightQuery -= OnEntityFightQuery;
-        _entities.Remove(_entity);
-    }
 
-    private void Clear()
-    {
-        foreach (Entity _entity in _entities)
-        {
-            _entity.onFightQuery -= OnEntityFightQuery;
-            _entity.Despawn();
-        }
-
-        _entities.Clear();
+        int _index = _entities.IndexOf(_entity);
+        _entities.RemoveAt(_index);
+        _spawnedEntityPrefabs.RemoveAt(_index);
     }
 
     private Vector3 GetFreeSpawnPosition()
@@ -102,10 +86,10 @@ public class EntityGroup : MonoBehaviour
         return new Vector3(Mathf.Cos(_angle) * _radius, 0f, Mathf.Sin(_angle) * _radius);
     }
 
-    private void OnEntityFightQuery(Entity entity)
+    private void OnEntityFightQuery(Entity _entity)
     {
-        _arena.StartCombat(_entities);
-        entity.onFightQuery -= OnEntityFightQuery;
+        _entity.onFightQuery -= OnEntityFightQuery;
+        RunManager.Instance.StartCombat(_spawnedEntityPrefabs);
     }
 
 #if UNITY_EDITOR
