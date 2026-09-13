@@ -7,7 +7,7 @@ using UnityEngine;
 public class Entity : MonoBehaviour, IPoolable
 {
     public Action<Entity> onFightQuery;
-    
+
     [SerializeField] private Animator _animator;
     [SerializeField] private Collider _collider;
     [SerializeField] private EntityType _entityType;
@@ -18,6 +18,7 @@ public class Entity : MonoBehaviour, IPoolable
     public EntityType EntityType => _entityType;
     public Animator Animator => _animator;
     public Collider Collider => _collider;
+    public bool IsTakingTurn { get; private set; }
 
     public bool TryGetModule<T>(out T module) where T : EntityModule
     {
@@ -39,10 +40,13 @@ public class Entity : MonoBehaviour, IPoolable
 
     public void OnDespawn()
     {
+        RemoveFromEntityManager();
+
         foreach (var module in _modulesByType.Values.Distinct())
             module.Cleanup();
 
         _modulesInitialized = false;
+        IsTakingTurn = false;
     }
 
     public void Despawn()
@@ -126,7 +130,27 @@ public class Entity : MonoBehaviour, IPoolable
 
     public void OnCombatExit()
     {
+        IsTakingTurn = false;
+
         foreach (var module in _modulesByType.Values.Distinct())
             module.OnCombatExit();
+    }
+
+    [ContextMenu("Start Turn")]
+    public void OnTurnStart()
+    {
+        IsTakingTurn = true;
+
+        foreach (var module in _modulesByType.Values.Distinct())
+            module.OnTurnStart();
+    }
+
+    [ContextMenu("End Turn")]
+    public void OnTurnEnd()
+    {
+        foreach (var module in _modulesByType.Values.Distinct())
+            module.OnTurnEnd();
+
+        IsTakingTurn = false;
     }
 }

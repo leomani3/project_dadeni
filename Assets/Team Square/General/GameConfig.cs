@@ -82,7 +82,10 @@ public class GameConfig : ScriptableObject
 
         [Space, Header("Tutorial")]
         public float delayBeforeCanValidateOnClick = 0.2f;
-        
+
+        [Space, Header("Combat")]
+        public bool retainBlockBetweenTurns = false;
+
 
         public double GetResetCurrencyNeeded(int index)
         {

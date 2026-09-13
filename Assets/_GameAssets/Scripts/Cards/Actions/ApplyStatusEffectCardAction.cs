@@ -15,7 +15,8 @@ namespace Deckbuilder.Cards.Actions
 
         protected override void ApplyTo(Entity _entity, CardActionContext _context)
         {
-            Debug.LogWarning($"Status effect system not implemented yet, skipping {m_statusEffect?.DisplayName} on {_entity.name}.");
+            _entity.TryGetModule(out StatusEffectModule _statusEffects);
+            _statusEffects.ApplyStatusEffect(m_statusEffect, m_stacks);
         }
     }
 }

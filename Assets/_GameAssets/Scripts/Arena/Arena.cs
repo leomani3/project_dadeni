@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Deckbuilder.Actions;
 using Deckbuilder.Grid;
 using Lean.Pool;
 using UnityEngine;
@@ -14,14 +16,20 @@ namespace Deckbuilder.Combat
         public Action onCombatEnded;
 
         [SerializeField] private ArenaGrid m_grid;
-        
+        [SerializeField, Min(0f)] private float m_enemyTurnDuration = 0.5f;
+
         public ArenaGrid Grid => m_grid;
         public IReadOnlyList<Entity> Enemies => m_enemies;
         public bool IsCombatRunning { get; private set; }
-        
+        public bool IsPlayerTurn { get; private set; }
+
         private readonly List<Entity> m_combatEntities = new();
         private readonly List<Entity> m_enemies = new();
+        private readonly List<Entity> m_enemiesTakingTurn = new();
+        private readonly Dictionary<Entity, Pose> m_posesBeforeCombat = new();
         private Entity _player;
+        private CombatCanvas m_combatCanvas;
+        private Coroutine m_enemyTurnsRoutine;
 
         private void Reset()
         {
@@ -43,7 +51,14 @@ namespace Deckbuilder.Combat
             PlaceEnemies(_enemies);
             PlacePlayer();
 
+            m_combatCanvas = UIManager.Instance.GetCanvas<CombatCanvas>();
+            m_combatCanvas.onEndTurnClicked += EndPlayerTurn;
+            m_combatCanvas.onEndCombatClicked += EndCombat;
+            m_combatCanvas.Open();
+
             onCombatStarted?.Invoke();
+
+            StartPlayerTurn();
         }
 
         public void EndCombat()
@@ -52,22 +67,51 @@ namespace Deckbuilder.Combat
                 return;
 
             IsCombatRunning = false;
+            IsPlayerTurn = false;
+
+            if (m_enemyTurnsRoutine != null)
+            {
+                StopCoroutine(m_enemyTurnsRoutine);
+                m_enemyTurnsRoutine = null;
+            }
 
             EntityManager.Instance.onEntityUnregistered -= Forget;
 
             foreach (Entity _entity in m_combatEntities)
             {
                 ReleaseCell(_entity);
+
+                Pose _poseBeforeCombat = m_posesBeforeCombat[_entity];
+                _entity.transform.SetPositionAndRotation(_poseBeforeCombat.position, _poseBeforeCombat.rotation);
+
                 _entity.OnCombatExit();
             }
 
             m_combatEntities.Clear();
             m_enemies.Clear();
+            m_posesBeforeCombat.Clear();
             _player = null;
 
             m_grid.ClearAllHighlights();
 
+            m_combatCanvas.onEndTurnClicked -= EndPlayerTurn;
+            m_combatCanvas.onEndCombatClicked -= EndCombat;
+            m_combatCanvas.Close();
+            m_combatCanvas = null;
+
             onCombatEnded?.Invoke();
+
+            gameObject.SetActive(false);
+        }
+
+        public void EndPlayerTurn()
+        {
+            if (!IsPlayerTurn)
+                return;
+
+            IsPlayerTurn = false;
+            m_combatCanvas.SetEndTurnButtonInteractable(false);
+            m_enemyTurnsRoutine = StartCoroutine(PlayEnemyTurns());
         }
 
         public Entity SpawnEntity(Entity _entityPrefab, GridCell _cell)
@@ -76,6 +120,45 @@ namespace Deckbuilder.Combat
             PlaceOnCell(_entity, _cell);
 
             return _entity;
+        }
+
+        private void StartPlayerTurn()
+        {
+            IsPlayerTurn = true;
+            _player.OnTurnStart();
+            m_combatCanvas.SetEndTurnButtonInteractable(true);
+        }
+
+        private IEnumerator PlayEnemyTurns()
+        {
+            _player.TryGetModule(out EntityActionQueueModule _playerActionQueue);
+
+            while (_playerActionQueue.IsProcessing)
+                yield return null;
+
+            _player.OnTurnEnd();
+
+            m_enemiesTakingTurn.Clear();
+            m_enemiesTakingTurn.AddRange(m_enemies);
+
+            foreach (Entity _enemy in m_enemiesTakingTurn)
+            {
+                if (m_enemies.Contains(_enemy))
+                    yield return PlayEnemyTurn(_enemy);
+            }
+
+            m_enemyTurnsRoutine = null;
+            StartPlayerTurn();
+        }
+
+        private IEnumerator PlayEnemyTurn(Entity _enemy)
+        {
+            _enemy.OnTurnStart();
+
+            if (m_enemies.Contains(_enemy))
+                yield return new WaitForSeconds(m_enemyTurnDuration);
+
+            _enemy.OnTurnEnd();
         }
 
         private void PlaceEnemies(IReadOnlyList<Entity> _enemies)
@@ -99,12 +182,14 @@ namespace Deckbuilder.Combat
         {
             _player = EntityManager.Instance.Player;
             GridCell _spawnCell = m_grid.GetFreeSpawnCell(CellType.AllySpawn);
-            
+
             PlaceOnCell(_player, _spawnCell);
         }
 
         private void PlaceOnCell(Entity _entity, GridCell _cell)
         {
+            m_posesBeforeCombat[_entity] = new Pose(_entity.transform.position, _entity.transform.rotation);
+
             _entity.OnCombatEnter();
             _entity.transform.SetPositionAndRotation(_cell.transform.position, _cell.transform.rotation);
 
@@ -129,6 +214,7 @@ namespace Deckbuilder.Combat
 
             m_combatEntities.Remove(_entity);
             m_enemies.Remove(_entity);
+            m_posesBeforeCombat.Remove(_entity);
 
             if (_player == _entity)
                 _player = null;

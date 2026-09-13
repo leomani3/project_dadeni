@@ -1,7 +1,9 @@
+using Deckbuilder.StatusEffects;
 using Lean.Pool;
 using UnityEngine;
 
 [RequireComponent(typeof(EntityHealthModule))]
+[RequireComponent(typeof(StatusEffectModule))]
 public class EntityHUDModule : EntityModule
 {
     [SerializeField] private EntityHUD _hudPrefab;
@@ -10,6 +12,7 @@ public class EntityHUDModule : EntityModule
     [SerializeField, Min(1)] private int _level = 1;
 
     private EntityHealthModule _healthModule;
+    private StatusEffectModule _statusEffectModule;
     private EntityHUD _hud;
 
     public override void OnAllModuleInitialized()
@@ -18,7 +21,12 @@ public class EntityHUDModule : EntityModule
 
         Owner.TryGetModule(out _healthModule);
         _healthModule.OnHealthChanged += HandleHealthChanged;
+        _healthModule.OnBlockChanged += HandleBlockChanged;
         _healthModule.OnDeathStart += HandleDeathStart;
+
+        Owner.TryGetModule(out _statusEffectModule);
+        _statusEffectModule.OnStatusEffectChanged += HandleStatusEffectChanged;
+        _statusEffectModule.OnStatusEffectRemoved += HandleStatusEffectRemoved;
 
         SpawnHUD();
     }
@@ -32,9 +40,9 @@ public class EntityHUDModule : EntityModule
 
     private void SpawnHUD()
     {
-        Transform canvasTransform = UIManager.Instance.GetCanvas<GameCanvas>().transform;
+        Transform canvasTransform = UIManager.Instance.GetCanvas<RunCanvas>().transform;
         _hud = LeanPool.Spawn(_hudPrefab, canvasTransform);
-        _hud.Setup(_hudAnchor, _displayName, _level, _healthModule.MaxHealth, _healthModule.MaxHealth);
+        _hud.Setup(_hudAnchor, _displayName, _level, _healthModule.MaxHealth, _healthModule.MaxHealth, _healthModule.Block);
     }
 
     private void DespawnHUD()
@@ -50,7 +58,10 @@ public class EntityHUDModule : EntityModule
     private void UnsubscribeFromModules()
     {
         _healthModule.OnHealthChanged -= HandleHealthChanged;
+        _healthModule.OnBlockChanged -= HandleBlockChanged;
         _healthModule.OnDeathStart -= HandleDeathStart;
+        _statusEffectModule.OnStatusEffectChanged -= HandleStatusEffectChanged;
+        _statusEffectModule.OnStatusEffectRemoved -= HandleStatusEffectRemoved;
     }
 
     private void HandleHealthChanged(float currentHealth, float maxHealth, float delta, bool isCrit, bool suppressFeedback)
@@ -59,6 +70,21 @@ public class EntityHUDModule : EntityModule
 
         if (!suppressFeedback)
             SpawnHealthChangeText(delta, isCrit);
+    }
+
+    private void HandleBlockChanged(int block)
+    {
+        _hud.SetBlock(block);
+    }
+
+    private void HandleStatusEffectChanged(StatusEffect statusEffect)
+    {
+        _hud.SetStatusEffect(statusEffect);
+    }
+
+    private void HandleStatusEffectRemoved(StatusEffect statusEffect)
+    {
+        _hud.RemoveStatusEffect(statusEffect);
     }
 
     private void HandleDeathStart()

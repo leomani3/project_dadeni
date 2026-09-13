@@ -4,7 +4,6 @@ using DG.Tweening;
 using Lean.Pool;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class EntityHUD : MonoBehaviour, IPoolable
@@ -13,11 +12,12 @@ public class EntityHUD : MonoBehaviour, IPoolable
     [SerializeField] private GenericGauge _healthBar;
     [SerializeField] private TMP_Text _nameLabel;
     [SerializeField] private TMP_Text _levelLabel;
+    [SerializeField] private TMP_Text _blockLabel;
     [SerializeField] private RectTransform _statusEffectContainer;
-    [SerializeField] private Image _statusEffectIconPrefab;
+    [SerializeField] private StatusEffectDisplay _statusEffectDisplayPrefab;
     [SerializeField] private float _fadeInDuration = 0.2f;
 
-    private readonly Dictionary<StatusEffectConfig, Image> _statusEffectIcons = new Dictionary<StatusEffectConfig, Image>();
+    private readonly Dictionary<StatusEffectType, StatusEffectDisplay> _statusEffectDisplays = new Dictionary<StatusEffectType, StatusEffectDisplay>();
     private Transform _target;
     private Tween _fadeTween;
 
@@ -36,11 +36,12 @@ public class EntityHUD : MonoBehaviour, IPoolable
         _fadeTween?.Kill();
     }
 
-    public void Setup(Transform target, string displayName, int level, float currentHealth, float maxHealth)
+    public void Setup(Transform target, string displayName, int level, float currentHealth, float maxHealth, int block)
     {
         _target = target;
         _nameLabel.text = displayName;
         SetLevel(level);
+        SetBlock(block);
         _healthBar.Setup(currentHealth, maxHealth);
         FollowTarget();
     }
@@ -55,19 +56,29 @@ public class EntityHUD : MonoBehaviour, IPoolable
         _levelLabel.text = $"Lv {level}";
     }
 
-    public void AddStatusEffect(StatusEffectConfig statusEffect)
+    public void SetBlock(int block)
     {
-        if (_statusEffectIcons.ContainsKey(statusEffect)) return;
-
-        Image icon = LeanPool.Spawn(_statusEffectIconPrefab, _statusEffectContainer);
-        icon.sprite = statusEffect.Icon;
-        _statusEffectIcons.Add(statusEffect, icon);
+        _blockLabel.gameObject.SetActive(block > 0);
+        _blockLabel.text = block.ToString();
     }
 
-    public void RemoveStatusEffect(StatusEffectConfig statusEffect)
+    public void SetStatusEffect(StatusEffect statusEffect)
     {
-        if (_statusEffectIcons.Remove(statusEffect, out Image icon))
-            LeanPool.Despawn(icon);
+        StatusEffectType type = statusEffect.Config.Type;
+
+        if (!_statusEffectDisplays.TryGetValue(type, out StatusEffectDisplay display))
+        {
+            display = LeanPool.Spawn(_statusEffectDisplayPrefab, _statusEffectContainer);
+            _statusEffectDisplays.Add(type, display);
+        }
+
+        display.Refresh(statusEffect);
+    }
+
+    public void RemoveStatusEffect(StatusEffect statusEffect)
+    {
+        if (_statusEffectDisplays.Remove(statusEffect.Config.Type, out StatusEffectDisplay display))
+            LeanPool.Despawn(display);
     }
 
     public void OnSpawn()
@@ -82,11 +93,11 @@ public class EntityHUD : MonoBehaviour, IPoolable
         _fadeTween?.Kill();
         _healthBar.StopFeedback();
 
-        foreach (Image icon in _statusEffectIcons.Values)
-            if (icon.gameObject.activeSelf)
-                LeanPool.Despawn(icon);
+        foreach (StatusEffectDisplay display in _statusEffectDisplays.Values)
+            if (display.gameObject.activeSelf)
+                LeanPool.Despawn(display);
 
-        _statusEffectIcons.Clear();
+        _statusEffectDisplays.Clear();
         _target = null;
     }
 

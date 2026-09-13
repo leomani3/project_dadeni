@@ -4,6 +4,8 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 using Utils;
 
 public class UIManager : Singleton<UIManager>
@@ -11,7 +13,8 @@ public class UIManager : Singleton<UIManager>
     [SerializeField, ReadOnly] private SerializableDictionary<Type, CanvasHandler> m_canvases;
     [SerializeField] private CanvasHandler m_defaultCanvas;
 
-    public bool IsOverUI => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+    public bool IsOverUI => EventSystem.current.currentInputModule is InputSystemUIInputModule inputModule
+        && inputModule.GetLastRaycastResult(Pointer.current.deviceId).module is GraphicRaycaster;
 
     private void Awake()
     {
@@ -55,4 +58,4 @@ public class UIManager : Singleton<UIManager>
         foreach (CanvasHandler canvas in m_canvases.Values)
             canvas.Close();
     }
-}
+}

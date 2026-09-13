@@ -26,3 +26,4 @@ MonoBehaviour:
     resetedCurrency: []
     resetCurrenciesNeeded: []
     delayBeforeCanValidateOnClick: 0.2
+    retainBlockBetweenTurns: 0

@@ -15,6 +15,7 @@ MonoBehaviour:
   m_id: card.attack
   m_title: Attack
   m_illustration: {fileID: 0}
+  m_castAnimation: {fileID: 7400000, guid: 8bb5f980ab0faa944b787b776aa0c925, type: 2}
   m_targetZone:
     m_shape: 2
     m_range: {x: 0, y: 5}
@@ -22,13 +23,22 @@ MonoBehaviour:
   m_effectZone:
     m_shape: 1
     m_range: {x: 0, y: 2}
-  m_castAnimation: {fileID: 7400000, guid: 8bb5f980ab0faa944b787b776aa0c925, type: 2}
   m_actions:
-  - rid: 4862471916181520472
+  - rid: 1493613139479494743
+  m_targetZoneUpgraded:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_requiresLineOfSightUpgraded: 0
+  m_effectZoneUpgraded:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_actionsUpgraded: []
   references:
     version: 2
     RefIds:
-    - rid: 4862471916181520472
-      type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+    - rid: 1493613139479494743
+      type: {class: ApplyStatusEffectCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
       data:
-        m_damage: 10
+        m_targetTeams: 3
+        m_statusEffect: {fileID: 11400000, guid: a8a16ffbf07bded2ce12d76a35c17b9d, type: 2}
+        m_stacks: 1

@@ -47,9 +47,7 @@ public class EntityManager : Singleton<EntityManager>
 
     internal void Unregister(Entity entity)
     {
-        if (entity == null) return;
-
-        _entities.Remove(entity);
+        if (entity == null || !_entities.Remove(entity)) return;
 
         if (entity.Collider != null)
             _entitiesByCollider.Remove(entity.Collider);

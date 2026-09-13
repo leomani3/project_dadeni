@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Deckbuilder.StatusEffects;
 using DG.Tweening;
 using Lean.Pool;
 using Stats;
@@ -11,6 +12,7 @@ public class EntityHealthModule : EntityModule
     public Action<float, float, float, bool, bool> OnHealthChanged;
     public Action<float, float> OnDamageTaken;
     public Action<float, float> OnHealed;
+    public Action<int> OnBlockChanged;
     public Action OnDeathStart;
     public Action OnDeath;
 
@@ -26,12 +28,15 @@ public class EntityHealthModule : EntityModule
     [SerializeField] private float _maxHealthFallbackWithoutStatModule = 100f;
 
     private float _currentHealth;
+    private int _block;
     protected bool _isDead;
     private Tween _damagePunchTween;
     protected EntityStatModule _statModule;
+    protected StatusEffectModule _statusEffectModule;
 
     public bool IsDead => _isDead;
     public float CurrentHealth => _currentHealth;
+    public int Block => _block;
 
     public float MaxHealth
     {
@@ -55,6 +60,7 @@ public class EntityHealthModule : EntityModule
     {
         base.OnAllModuleInitialized();
         Owner.TryGetModule(out _statModule);
+        Owner.TryGetModule(out _statusEffectModule);
         _currentHealth = MaxHealth;
     }
 
@@ -63,8 +69,24 @@ public class EntityHealthModule : EntityModule
         OnHealthChanged = null;
         OnDamageTaken = null;
         OnHealed = null;
+        OnBlockChanged = null;
         OnDeathStart = null;
         OnDeath = null;
+        _block = 0;
+    }
+
+    public override void OnTurnStart()
+    {
+        base.OnTurnStart();
+
+        if (!GameConfig.Instance.gameSettings.retainBlockBetweenTurns)
+            SetBlock(0);
+    }
+
+    public override void OnCombatExit()
+    {
+        base.OnCombatExit();
+        SetBlock(0);
     }
 
     public void RefillToMaxHealth()
@@ -73,22 +95,52 @@ public class EntityHealthModule : EntityModule
         OnHealthChanged?.Invoke(_currentHealth, MaxHealth, 0f, false, true);
     }
 
-    public void TakeDamage(float amount, bool isCrit, bool suppressFeedback = false)
+    public void TakeDamage(float amount, bool isCrit, bool ignoreVulnerable = false, bool ignoreBlock = false, bool suppressFeedback = false)
     {
         if (_isDead || amount <= 0f) return;
 
+        if (!ignoreVulnerable && _statusEffectModule.TryGetStatusEffect(StatusEffectType.Vulnerable, out StatusEffect vulnerable))
+            amount *= 1f + vulnerable.Config.Potency / 100f;
+
+        int damage = Mathf.FloorToInt(amount);
+
+        if (!ignoreBlock)
+        {
+            int blockedDamage = Mathf.Min(_block, damage);
+            SetBlock(_block - blockedDamage);
+            damage -= blockedDamage;
+        }
+
+        if (damage <= 0) return;
+
         float healthBeforeDamage = _currentHealth;
-        _currentHealth = Mathf.Max(0f, _currentHealth - amount);
+        _currentHealth = Mathf.Max(0f, _currentHealth - damage);
         float healthDelta = _currentHealth - healthBeforeDamage;
 
         if (!suppressFeedback)
             PlayDamageFeedback();
 
-        OnDamageTaken?.Invoke(amount, _currentHealth);
+        OnDamageTaken?.Invoke(damage, _currentHealth);
         OnHealthChanged?.Invoke(_currentHealth, MaxHealth, healthDelta, isCrit, suppressFeedback);
 
         if (_currentHealth <= 0f)
             Die();
+    }
+
+    public void GainBlock(float amount)
+    {
+        if (_isDead || amount <= 0f) return;
+
+        if (_statusEffectModule.TryGetStatusEffect(StatusEffectType.Dexterity, out StatusEffect dexterity))
+            amount += dexterity.Stacks * dexterity.Config.Potency;
+
+        if (_statusEffectModule.TryGetStatusEffect(StatusEffectType.Frail, out StatusEffect frail))
+            amount *= 1f - frail.Config.Potency / 100f;
+
+        int gainedBlock = Mathf.FloorToInt(amount);
+        if (gainedBlock <= 0) return;
+
+        SetBlock(_block + gainedBlock);
     }
 
     public void Heal(float amount)
@@ -103,6 +155,14 @@ public class EntityHealthModule : EntityModule
 
         OnHealed?.Invoke(healthDelta, _currentHealth);
         OnHealthChanged?.Invoke(_currentHealth, MaxHealth, healthDelta, false, false);
+    }
+
+    private void SetBlock(int block)
+    {
+        if (block == _block) return;
+
+        _block = block;
+        OnBlockChanged?.Invoke(_block);
     }
 
     protected virtual void PlayDamageFeedback()

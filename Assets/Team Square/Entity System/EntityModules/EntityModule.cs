@@ -18,5 +18,7 @@ public abstract class EntityModule : MonoBehaviour
     public virtual void Cleanup() { }
     public virtual void OnCombatEnter() { }
     public virtual void OnCombatExit() { }
+    public virtual void OnTurnStart() { }
+    public virtual void OnTurnEnd() { }
     public virtual void CacheReferences() { }
 }

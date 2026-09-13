@@ -3,7 +3,6 @@ using Deckbuilder.Actions;
 using Deckbuilder.Cards;
 using Deckbuilder.Combat;
 using Deckbuilder.Grid;
-using Stats;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -40,11 +39,22 @@ namespace Deckbuilder.Player
             enabled = false;
         }
 
-        public override void OnCombatEnter()
+        public override void OnTurnStart()
         {
-            base.OnCombatEnter();
+            base.OnTurnStart();
 
             enabled = true;
+        }
+
+        public override void OnTurnEnd()
+        {
+            base.OnTurnEnd();
+
+            m_mode = Mode.Move;
+            enabled = false;
+
+            ResolveArena();
+            m_grid.ClearAllHighlights();
         }
 
         public override void OnCombatExit()
@@ -92,6 +102,9 @@ namespace Deckbuilder.Player
         {
             m_hoveredCell = null;
 
+            if (UIManager.Instance.IsOverUI)
+                return;
+
             if (CameraManager.Instance == null)
                 return;
 
@@ -115,7 +128,7 @@ namespace Deckbuilder.Player
                 return;
             }
 
-            List<GridCell> _reachableCells = m_grid.GetReachableCells(_entityCell, GetMovementPoints(_entity));
+            List<GridCell> _reachableCells = m_grid.GetReachableCells(_entityCell, GetRemainingMovementPoints(_entity));
             m_grid.SetHighlightLayer(HighlightLayer.MovementRange, _reachableCells);
 
             bool _isHoveredCellReachable = m_hoveredCell != null && _reachableCells.Contains(m_hoveredCell);
@@ -192,12 +205,10 @@ namespace Deckbuilder.Player
                 _queue.Enqueue(new PlayCardAction(m_arena, m_testCard, _entity, _targetCell));
         }
 
-        private int GetMovementPoints(Entity _entity)
+        private int GetRemainingMovementPoints(Entity _entity)
         {
-            if (_entity.TryGetModule(out EntityStatModule _statModule))
-                return Mathf.RoundToInt(_statModule.GetValue(StatType.MovementPoints));
-
-            return 3;
+            _entity.TryGetModule(out EntityCombatMoverModule _combatMover);
+            return _combatMover.RemainingMovementPoints;
         }
 
         private void ClearMoveHighlights()

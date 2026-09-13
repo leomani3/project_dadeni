@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Deckbuilder.Combat;
 using Deckbuilder.Grid;
+using Stats;
 using UnityEngine;
 
 public class EntityCombatMoverModule : EntityModule
@@ -13,10 +14,12 @@ public class EntityCombatMoverModule : EntityModule
     public GridCell CurrentCell { get; private set; }
     public GridCell DestinationCell { get; private set; }
     public bool IsMoving { get; private set; }
+    public int RemainingMovementPoints { get; private set; }
 
     public GridCell EffectiveCell => IsMoving && DestinationCell != null ? DestinationCell : CurrentCell;
 
     private EntityAnimationModule m_animationModule;
+    private EntityStatModule m_statModule;
     private Coroutine m_moveRoutine;
     private bool m_cancelMoveRequested;
 
@@ -25,6 +28,21 @@ public class EntityCombatMoverModule : EntityModule
         base.OnAllModuleInitialized();
 
         Owner.TryGetModule(out m_animationModule);
+        Owner.TryGetModule(out m_statModule);
+    }
+
+    public override void OnTurnStart()
+    {
+        base.OnTurnStart();
+
+        RemainingMovementPoints = Mathf.RoundToInt(m_statModule.GetValue(StatType.MovementPoints));
+    }
+
+    public override void OnCombatExit()
+    {
+        base.OnCombatExit();
+
+        ResetCombatState();
     }
 
     public void SetArena(Arena _arena)
@@ -55,6 +73,11 @@ public class EntityCombatMoverModule : EntityModule
         if (_path == null || _path.Count < 2)
             return false;
 
+        int _movementCost = _path.Count - 1;
+        if (_movementCost > RemainingMovementPoints)
+            return false;
+
+        RemainingMovementPoints -= _movementCost;
         DestinationCell = _destination;
         m_cancelMoveRequested = false;
         m_moveRoutine = StartCoroutine(FollowPath(_path));
@@ -71,20 +94,26 @@ public class EntityCombatMoverModule : EntityModule
     {
         base.Cleanup();
 
+        if (CurrentCell != null && CurrentCell.Occupant == Owner)
+            CurrentCell.ClearOccupant();
+
+        ResetCombatState();
+    }
+
+    private void ResetCombatState()
+    {
         if (m_moveRoutine != null)
         {
             StopCoroutine(m_moveRoutine);
             m_moveRoutine = null;
         }
 
-        if (CurrentCell != null && CurrentCell.Occupant == Owner)
-            CurrentCell.ClearOccupant();
-
         Arena = null;
         CurrentCell = null;
         DestinationCell = null;
         IsMoving = false;
         m_cancelMoveRequested = false;
+        RemainingMovementPoints = 0;
     }
 
     private IEnumerator FollowPath(List<GridCell> _path)
@@ -99,7 +128,10 @@ public class EntityCombatMoverModule : EntityModule
             Grid.MoveEntity(Owner, _targetCell);
 
             if (m_cancelMoveRequested)
+            {
+                RemainingMovementPoints += _path.Count - 1 - _i;
                 break;
+            }
         }
 
         m_animationModule.SetLocomotionSpeed(0f);

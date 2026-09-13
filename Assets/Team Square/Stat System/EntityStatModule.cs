@@ -9,6 +9,13 @@ namespace Stats
             StatManager.Instance.RegisterInstance(gameObject, Owner.EntityType);
         }
 
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            StatManager.Instance.UnregisterInstance(gameObject);
+        }
+
         private void OnDestroy()
         {
             if (StatManager.Instance != null)

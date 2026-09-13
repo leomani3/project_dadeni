@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Deckbuilder.Combat;
+using Lean.Pool;
 using UnityEngine;
 using Utils;
 
@@ -19,7 +20,13 @@ public class EntityGroup : MonoBehaviour
 
     private void Awake()
     {
+        _arena.onCombatEnded += Clear;
         Init(_entityPrefabs);
+    }
+
+    private void OnDestroy()
+    {
+        _arena.onCombatEnded -= Clear;
     }
 
     public void Init(IReadOnlyList<Entity> _entitiesToSpawn)
@@ -30,11 +37,32 @@ public class EntityGroup : MonoBehaviour
 
     private Entity Spawn(Entity _entityPrefab)
     {
-        Entity _entity = Instantiate(_entityPrefab, GetFreeSpawnPosition(), CusRandom.Rotation(RotationAxis.Y), transform);
+        Entity _entity = LeanPool.Spawn(_entityPrefab, GetFreeSpawnPosition(), CusRandom.Rotation(RotationAxis.Y), transform);
         _entity.onFightQuery += OnEntityFightQuery;
+
+        _entity.TryGetModule(out EntityHealthModule _healthModule);
+        _healthModule.OnDeathStart += () => Forget(_entity);
+
         _entities.Add(_entity);
 
         return _entity;
+    }
+
+    private void Forget(Entity _entity)
+    {
+        _entity.onFightQuery -= OnEntityFightQuery;
+        _entities.Remove(_entity);
+    }
+
+    private void Clear()
+    {
+        foreach (Entity _entity in _entities)
+        {
+            _entity.onFightQuery -= OnEntityFightQuery;
+            _entity.Despawn();
+        }
+
+        _entities.Clear();
     }
 
     private Vector3 GetFreeSpawnPosition()
