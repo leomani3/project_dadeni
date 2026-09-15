@@ -304,7 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCam: {fileID: 8529779136037131250}
-  _virtualCamera: {fileID: 0}
+  _virtualCamera: {fileID: 8499985053862778347}
 --- !u!1 &8501095908338403052
 GameObject:
   m_ObjectHideFlags: 0

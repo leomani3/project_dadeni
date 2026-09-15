@@ -45,3 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunManager
   _playerPrefab: {fileID: 7403663881764562647, guid: d10b2a29585546449a00a0603d583c4f, type: 3}
+  _roomPrefabs:
+    keys: 00000000010000000200000003000000
+    values:
+    - {fileID: 5203288017071059836, guid: 33afc0a1e7d98fe4dbb6c25ac6691306, type: 3}
+    - {fileID: 3170584653716290446, guid: 27b565d2cf860924ba4e76b696ded0bc, type: 3}
+    - {fileID: 4360446250139628001, guid: 78546d139c8e6524fad24c993b44cc7d, type: 3}
+    - {fileID: 1190952657872286349, guid: 2d2b3bc6ed8f19d4ca5d135f4050bba8, type: 3}

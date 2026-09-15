@@ -5,6 +5,7 @@ using Deckbuilder.Actions;
 using Deckbuilder.Grid;
 using Lean.Pool;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Utils;
 
 namespace Deckbuilder.Combat
@@ -36,6 +37,7 @@ namespace Deckbuilder.Combat
 
         private void Start()
         {
+            SceneManager.SetActiveScene(gameObject.scene);
             StartCombat(RunManager.Instance.Player, RunManager.Instance.CurrentEnemyGroup);
         }
 
