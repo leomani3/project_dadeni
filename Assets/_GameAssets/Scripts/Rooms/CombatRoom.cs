@@ -6,13 +6,4 @@ public class CombatRoom : Room
     {
         RunManager.Instance.StartCombat(_enemyPrefabs);
     }
-
-    public override void OnEnter()
-    {
-        //tp camera
-    }
-
-    public override void Exit()
-    {
-    }
 }

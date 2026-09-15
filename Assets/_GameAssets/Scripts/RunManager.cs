@@ -7,11 +7,11 @@ using UnityEngine.SceneManagement;
 public class RunManager : Singleton<RunManager>
 {
     [SerializeField] private Entity _playerPrefab;
-    [SerializeField] private List<Room> _rooms;
 
     private Room _currentRoom;
     private readonly List<Entity> _currentEnemyGroup = new List<Entity>();
     private Pose _playerPoseBeforeCombat;
+    private MapData _currentMap;
 
     public Entity Player { get; private set; }
     public IReadOnlyList<Entity> CurrentEnemyGroup => _currentEnemyGroup;
@@ -25,10 +25,18 @@ public class RunManager : Singleton<RunManager>
 
         await SceneManager.LoadSceneAsync("MainScene");
 
-        _rooms = FindObjectsByType<Room>(FindObjectsSortMode.None).ToList();
-
         Player = Instantiate(_playerPrefab, Vector3.zero, Quaternion.identity, transform);
-        TeleportPlayerInRoom(_rooms[0]);
+    }
+
+    private void GenerateMap()
+    {
+        _currentMap = new MapData(new List<RoomType>
+            {
+                RoomType.Fight, 
+                RoomType.Fight,
+                RoomType.Fight
+            }
+        );
     }
 
     public void StartCombat(IReadOnlyList<Entity> _enemyPrefabs)
