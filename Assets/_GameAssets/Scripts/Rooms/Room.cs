@@ -1,9 +1,37 @@
+using System;
 using UnityEngine;
 
-public abstract class Room : MonoBehaviour
-{
-    private RoomType _roomType;
+public class Room : MonoBehaviour
+{                                    
+    [SerializeField] private GameObject _entryDoor;
+    [SerializeField] private Transform _spawnPoint;
 
-    public abstract void Enter();
-    public abstract void Exit();
+    public Transform SpawnPoint => _spawnPoint;
+    
+    private RoomType _roomType;
+    
+    private void Awake()
+    {
+        _entryDoor.SetActive(true);
+    }
+
+    private void Open()
+    {
+        _entryDoor.SetActive(false);
+    }
+
+    public virtual void OnEnter()
+    {
+        _entryDoor.SetActive(true);
+    }
+
+    public virtual void Exit()
+    {
+        
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        OnEnter();
+    }
 }

@@ -87,6 +87,14 @@ public class EntityRoomMoverModule : EntityModule
         return true;
     }
 
+    public void Teleport(Vector3 _worldPosition)
+    {
+        StopMoving();
+
+        if (!m_agent.Warp(_worldPosition))
+            this.LogWarning($"Could not place the agent on the NavMesh at {_worldPosition}.");
+    }
+
     public void StopMoving()
     {
         m_hasDestination = false;
