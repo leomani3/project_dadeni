@@ -1,4 +1,4 @@
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -45,6 +45,7 @@ public class GameConfig : ScriptableObject
         public bool noCurrencyRequired = false;
         public bool noMenu = false;
         public bool disableBootStrapper = false;
+        public string debugSeed = string.Empty;
     }
 
     [System.Serializable]

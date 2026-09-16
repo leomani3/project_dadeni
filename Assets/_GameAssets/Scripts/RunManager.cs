@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using MyBox;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,9 +10,11 @@ public class RunManager : Singleton<RunManager>
 {
     private const string MainSceneName = "MainScene";
     private const string CombatSceneName = "CombatScene";
+    private const string MapDebugFileName = "Map.txt";
 
     [SerializeField] private Entity _playerPrefab;
     [SerializeField] private SerializableDictionary<RoomType, Room> _roomPrefabs = new SerializableDictionary<RoomType, Room>();
+    [SerializeField] private MapGenerationSettings _mapGenerationSettings = new MapGenerationSettings();
 
     private readonly List<Entity> _currentEnemyGroup = new List<Entity>();
     private readonly List<GameObject> _mainSceneRootsHiddenDuringCombat = new List<GameObject>();
@@ -24,7 +28,7 @@ public class RunManager : Singleton<RunManager>
     public Room CurrentRoom { get; private set; }
     public int CurrentRoomIndex { get; private set; }
 
-    public async void StartRun()
+    public async void StartRun(string _seed = "")
     {
         if (Player != null)
             Destroy(Player.gameObject);
@@ -34,12 +38,14 @@ public class RunManager : Singleton<RunManager>
         _isChangingRoom = false;
         CurrentRoom = null;
 
+        RunRandom.Initialize(string.IsNullOrWhiteSpace(_seed) ? GameConfig.Instance.cheatSettings.debugSeed : _seed);
+
         await SceneManager.LoadSceneAsync(MainSceneName);
 
         Player = Instantiate(_playerPrefab, Vector3.zero, Quaternion.identity, transform);
 
         GenerateMap();
-        SpawnRoom(0);
+        SpawnRoom(CurrentMap.StartNodeIndices[0]);
     }
 
     public void CompleteCurrentRoom()
@@ -99,13 +105,26 @@ public class RunManager : Singleton<RunManager>
 
     private void GenerateMap()
     {
-        CurrentMap = new MapData(new List<RoomType>
-            {
-                RoomType.Fight,
-                RoomType.Fight,
-                RoomType.Fight
-            }
-        );
+        CurrentMap = MapGenerator.Generate(_mapGenerationSettings, RunRandom.GetStream(RandomChannel.Map));
+
+        ExportMapDebugFile();
+    }
+
+    private void ExportMapDebugFile()
+    {
+#if UNITY_EDITOR
+        string _directory = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs"));
+#else
+        string _directory = Path.Combine(Application.persistentDataPath, "Logs");
+#endif
+        Directory.CreateDirectory(_directory);
+
+        string _filePath = Path.Combine(_directory, MapDebugFileName);
+        string _header = $"Seed: {RunRandom.SeedString}{Environment.NewLine}Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}";
+
+        File.WriteAllText(_filePath, _header + CurrentMap.ToDebugString());
+
+        this.Log($"Map generated with seed {RunRandom.SeedString} - {_filePath}");
     }
 
     private void SpawnRoom(int _roomIndex)
@@ -114,7 +133,7 @@ public class RunManager : Singleton<RunManager>
             Destroy(CurrentRoom.gameObject);
 
         CurrentRoomIndex = _roomIndex;
-        CurrentRoom = Instantiate(_roomPrefabs[CurrentMap.Rooms[_roomIndex]]);
+        CurrentRoom = Instantiate(_roomPrefabs[CurrentMap.GetRoomType(_roomIndex)]);
         CurrentRoom.SetupDoors(CurrentMap.GetNextRoomDirections(_roomIndex));
 
         TeleportPlayerToSpawnPoint(CurrentRoom.SpawnPoint);
