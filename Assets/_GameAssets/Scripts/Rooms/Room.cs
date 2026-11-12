@@ -11,10 +11,22 @@ public class Room : MonoBehaviour
     [SerializeField] private RoomType _roomType;
     [SerializeField] private Transform _spawnPoint;
     [SerializeField] private List<Door> _doors = new List<Door>();
+    [SerializeField] private List<EntityGroup> _entityGroups = new List<EntityGroup>();
 
     public RoomType RoomType => _roomType;
     public Transform SpawnPoint => _spawnPoint;
     public bool IsCompleted { get; private set; }
+
+    private void Reset()
+    {
+        _entityGroups = GetComponentsInChildren<EntityGroup>(true).ToList();
+    }
+
+    public void ClearEntityGroups()
+    {
+        foreach (EntityGroup _entityGroup in _entityGroups)
+            _entityGroup.ClearEntities();
+    }
 
     public void SetupDoors(IReadOnlyCollection<DoorDirection> _openDirections)
     {

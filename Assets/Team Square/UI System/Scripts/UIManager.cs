@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using MyBox;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -10,7 +10,7 @@ using Utils;
 
 public class UIManager : Singleton<UIManager>
 {
-    [SerializeField, ReadOnly] private SerializableDictionary<Type, CanvasHandler> m_canvases;
+    private readonly Dictionary<Type, CanvasHandler> m_canvases = new Dictionary<Type, CanvasHandler>();
     [SerializeField] private CanvasHandler m_defaultCanvas;
 
     public bool IsOverUI => EventSystem.current.currentInputModule is InputSystemUIInputModule inputModule
@@ -26,7 +26,7 @@ public class UIManager : Singleton<UIManager>
 
     private void SetupCanvases()
     {
-        m_canvases = new SerializableDictionary<Type, CanvasHandler>();
+        m_canvases.Clear();
 
         foreach (CanvasHandler canvas in GetComponentsInChildren<CanvasHandler>(true))
         {
@@ -58,4 +58,4 @@ public class UIManager : Singleton<UIManager>
         foreach (CanvasHandler canvas in m_canvases.Values)
             canvas.Close();
     }
-}
+}

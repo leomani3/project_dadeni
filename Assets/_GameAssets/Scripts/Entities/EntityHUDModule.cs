@@ -38,6 +38,18 @@ public class EntityHUDModule : EntityModule
         DespawnHUD();
     }
 
+    private void OnEnable()
+    {
+        if (_hud != null)
+            _hud.SetHidden(false);
+    }
+
+    private void OnDisable()
+    {
+        if (_hud != null)
+            _hud.SetHidden(true);
+    }
+
     private void OnDestroy()
     {
         if (_hud != null)

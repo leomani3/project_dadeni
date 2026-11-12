@@ -10,6 +10,9 @@ namespace Deckbuilder.Cards.Actions
 
         public float HealAmount => m_healAmount;
 
+        public override string DescriptionFormat => "Heal {0} health";
+        public override object[] DescriptionValues => new object[] { m_healAmount };
+
         protected override void ApplyTo(Entity _entity, CardActionContext _context)
         {
             if (_entity.TryGetModule(out EntityHealthModule _health))

@@ -13,6 +13,9 @@ namespace Deckbuilder.Cards.Actions
         public StatusEffectConfig StatusEffect => m_statusEffect;
         public int Stacks => m_stacks;
 
+        public override string DescriptionFormat => "Apply {0} {1}";
+        public override object[] DescriptionValues => new object[] { m_stacks, m_statusEffect.DisplayName };
+
         protected override void ApplyTo(Entity _entity, CardActionContext _context)
         {
             _entity.TryGetModule(out StatusEffectModule _statusEffects);

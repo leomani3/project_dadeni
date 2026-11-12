@@ -1085,6 +1085,7 @@ MonoBehaviour:
   - {fileID: 2145683235735267642}
   - {fileID: 8860214005497982094}
   - {fileID: 3997145788280038956}
+  _entityGroups: []
 --- !u!1 &4790755780443029763
 GameObject:
   m_ObjectHideFlags: 0

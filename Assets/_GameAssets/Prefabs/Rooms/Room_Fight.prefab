@@ -162,6 +162,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Room_Fight
       objectReference: {fileID: 0}
+    - target: {fileID: 5495386804820778012, guid: a834c71019e87a746953cb7e4a104c9c, type: 3}
+      propertyPath: _entityGroups.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5495386804820778012, guid: a834c71019e87a746953cb7e4a104c9c, type: 3}
+      propertyPath: '_entityGroups.Array.data[0]'
+      value: 
+      objectReference: {fileID: 7926898929077866070}
+    - target: {fileID: 5495386804820778012, guid: a834c71019e87a746953cb7e4a104c9c, type: 3}
+      propertyPath: '_entityGroups.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8498344744162889971}
+    - target: {fileID: 5495386804820778012, guid: a834c71019e87a746953cb7e4a104c9c, type: 3}
+      propertyPath: '_entityGroups.Array.data[2]'
+      value: 
+      objectReference: {fileID: 5508800636253698603}
     - target: {fileID: 5894674124591906416, guid: a834c71019e87a746953cb7e4a104c9c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0

@@ -10,6 +10,9 @@ namespace Deckbuilder.Cards.Actions
 
         public float Block => m_block;
 
+        public override string DescriptionFormat => "Gain {0} block";
+        public override object[] DescriptionValues => new object[] { m_block };
+
         protected override void ApplyTo(Entity _entity, CardActionContext _context)
         {
             if (_entity.TryGetModule(out EntityHealthModule _health))

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Lean.Pool;
 using UnityEngine;
@@ -14,6 +15,7 @@ public class EntityGroup : MonoBehaviour
 
     private readonly List<Entity> _entities = new List<Entity>();
     private readonly List<Entity> _spawnedEntityPrefabs = new List<Entity>();
+    private readonly Dictionary<Entity, Action> _deathHandlers = new Dictionary<Entity, Action>();
 
     private void Awake()
     {
@@ -26,13 +28,25 @@ public class EntityGroup : MonoBehaviour
             Spawn(_entityPrefab);
     }
 
+    public void ClearEntities()
+    {
+        for (int i = _entities.Count - 1; i >= 0; i--)
+        {
+            Entity _entity = _entities[i];
+            Forget(_entity);
+            _entity.Despawn();
+        }
+    }
+
     private Entity Spawn(Entity _entityPrefab)
     {
         Entity _entity = LeanPool.Spawn(_entityPrefab, GetFreeSpawnPosition(), CusRandom.Rotation(RotationAxis.Y), transform);
         _entity.onFightQuery += OnEntityFightQuery;
 
+        Action _deathHandler = () => Forget(_entity);
+        _deathHandlers.Add(_entity, _deathHandler);
         _entity.TryGetModule(out EntityHealthModule _healthModule);
-        _healthModule.OnDeathStart += () => Forget(_entity);
+        _healthModule.OnDeathStart += _deathHandler;
 
         _entities.Add(_entity);
         _spawnedEntityPrefabs.Add(_entityPrefab);
@@ -43,6 +57,10 @@ public class EntityGroup : MonoBehaviour
     private void Forget(Entity _entity)
     {
         _entity.onFightQuery -= OnEntityFightQuery;
+
+        _entity.TryGetModule(out EntityHealthModule _healthModule);
+        _healthModule.OnDeathStart -= _deathHandlers[_entity];
+        _deathHandlers.Remove(_entity);
 
         int _index = _entities.IndexOf(_entity);
         _entities.RemoveAt(_index);

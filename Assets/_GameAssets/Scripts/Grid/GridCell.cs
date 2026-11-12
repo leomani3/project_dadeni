@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Utils;
 
 namespace Deckbuilder.Grid
 {
@@ -12,7 +11,6 @@ namespace Deckbuilder.Grid
         private static readonly Color AllySpawnColor = new(0.2f, 0.9f, 0.4f, 1f);
         private static readonly Color EnemySpawnColor = new(1f, 0.3f, 0.25f, 1f);
 
-        [SerializeField] private SerializableDictionary<HighlightLayer, GameObject> m_highlightVisuals = new();
         [SerializeField] private Vector2Int m_coordinate;
         [SerializeField] private CellType m_cellType;
         [SerializeField] private GameObject m_obstacleVisual;
@@ -29,7 +27,6 @@ namespace Deckbuilder.Grid
         private void Awake()
         {
             UpdateObstacleVisual();
-            HideAllHighlights();
         }
 
         private void OnValidate()
@@ -46,17 +43,6 @@ namespace Deckbuilder.Grid
         {
             m_cellType = _cellType;
             UpdateObstacleVisual();
-        }
-
-        public void SetHighlight(HighlightLayer _layer, bool _visible)
-        {
-            m_highlightVisuals[_layer].SetActive(_visible);
-        }
-
-        public void HideAllHighlights()
-        {
-            foreach (GameObject _visual in m_highlightVisuals.Values)
-                _visual.SetActive(false);
         }
 
 #if UNITY_EDITOR

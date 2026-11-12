@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 
 namespace Deckbuilder.Grid
 {
@@ -55,11 +56,12 @@ namespace Deckbuilder.Grid
             return null;
         }
 
-        public static List<GridCell> GetReachableCells(GridCell _start, int _maxSteps, Func<Vector2Int, GridCell> _cellResolver, bool _ignoreOccupants = false)
+        public static void GetReachableCells(GridCell _start, int _maxSteps, Func<Vector2Int, GridCell> _cellResolver, List<GridCell> _results, bool _ignoreOccupants = false)
         {
-            List<GridCell> _result = new List<GridCell>();
+            _results.Clear();
+
             if (_start == null || _maxSteps <= 0)
-                return _result;
+                return;
 
             Dictionary<Vector2Int, int> _visitedCost = new Dictionary<Vector2Int, int> { [_start.Coordinate] = 0 };
             Queue<Vector2Int> _frontier = new Queue<Vector2Int>();
@@ -97,10 +99,8 @@ namespace Deckbuilder.Grid
 
                 GridCell _cell = _cellResolver(_coordinate);
                 if (_cell != null)
-                    _result.Add(_cell);
+                    _results.Add(_cell);
             }
-
-            return _result;
         }
 
         private static bool IsWalkable(GridCell _cell, bool _ignoreOccupants)
@@ -117,11 +117,7 @@ namespace Deckbuilder.Grid
                 return GridDirectionUtility.Orthogonal;
 
             GridDirection[] _shuffled = (GridDirection[])GridDirectionUtility.Orthogonal.Clone();
-            for (int _i = _shuffled.Length - 1; _i > 0; _i--)
-            {
-                int _swapIndex = UnityEngine.Random.Range(0, _i + 1);
-                (_shuffled[_i], _shuffled[_swapIndex]) = (_shuffled[_swapIndex], _shuffled[_i]);
-            }
+            RunRandom.GetStream(RandomChannel.Combat).Shuffle(_shuffled);
 
             return _shuffled;
         }
@@ -151,7 +147,7 @@ namespace Deckbuilder.Grid
                     _candidates.Add(_coordinate);
             }
 
-            return _candidates[UnityEngine.Random.Range(0, _candidates.Count)];
+            return RunRandom.GetStream(RandomChannel.Combat).Pick(_candidates);
         }
 
         private static List<GridCell> ReconstructPath(Dictionary<Vector2Int, Vector2Int> _cameFrom, Vector2Int _current, Func<Vector2Int, GridCell> _cellResolver)

@@ -10,11 +10,11 @@ namespace Deckbuilder.Actions
     public class PlayCardAction : IEntityAction
     {
         private readonly CombatManager m_combatManager;
-        private readonly CardConfig m_card;
+        private readonly CardInstance m_card;
         private readonly Entity m_caster;
         private readonly GridCell m_targetCell;
 
-        public PlayCardAction(CombatManager _combatManager, CardConfig _card, Entity _caster, GridCell _targetCell)
+        public PlayCardAction(CombatManager _combatManager, CardInstance _card, Entity _caster, GridCell _targetCell)
         {
             m_combatManager = _combatManager;
             m_card = _card;
@@ -27,8 +27,8 @@ namespace Deckbuilder.Actions
             if (m_caster.TryGetModule(out EntityCombatMoverModule _combatMover))
                 _combatMover.FaceTowards(m_targetCell.transform.position);
 
-            if (m_card.CastAnimation != null && m_caster.TryGetModule(out EntityAnimationModule _animationModule))
-                yield return _animationModule.PlayCast(m_card.CastAnimation, ApplyCard);
+            if (m_card.Config.CastAnimation != null && m_caster.TryGetModule(out EntityAnimationModule _animationModule))
+                yield return _animationModule.PlayCast(m_card.Config.CastAnimation, ApplyCard);
             else
                 ApplyCard();
         }

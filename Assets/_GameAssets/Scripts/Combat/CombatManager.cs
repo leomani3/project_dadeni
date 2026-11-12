@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Deckbuilder.Actions;
+using Deckbuilder.Cards;
 using Deckbuilder.Grid;
 using Lean.Pool;
 using UnityEngine;
@@ -18,8 +19,11 @@ namespace Deckbuilder.Combat
 
         [SerializeField] private ArenaGrid m_grid;
         [SerializeField, Min(0f)] private float m_enemyTurnDuration = 0.5f;
+        [SerializeField] private CombatDeck m_deck = new();
 
         public ArenaGrid Grid => m_grid;
+        public CombatDeck Deck => m_deck;
+        public CombatDeckView DeckView => m_combatCanvas.DeckView;
         public IReadOnlyList<Entity> Enemies => m_enemies;
         public bool IsCombatRunning { get; private set; }
         public bool IsPlayerTurn { get; private set; }
@@ -57,6 +61,8 @@ namespace Deckbuilder.Combat
             m_combatCanvas.onEndCombatClicked += EndCombat;
             m_combatCanvas.Open();
 
+            StartDeck();
+
             onCombatStarted?.Invoke();
 
             StartPlayerTurn();
@@ -80,7 +86,11 @@ namespace Deckbuilder.Combat
 
             m_combatCanvas.onEndTurnClicked -= EndPlayerTurn;
             m_combatCanvas.onEndCombatClicked -= EndCombat;
+            m_combatCanvas.DeckView.onTransfersSettled -= HandleDeckTransfersSettled;
+            m_combatCanvas.DeckView.Unbind();
             m_combatCanvas.Close();
+
+            m_deck.EndCombat();
             m_combatCanvas = null;
 
             onCombatEnded?.Invoke();
@@ -90,10 +100,11 @@ namespace Deckbuilder.Combat
 
         public void EndPlayerTurn()
         {
-            if (!IsPlayerTurn)
+            if (!IsPlayerTurn || m_combatCanvas.DeckView.IsTransferring)
                 return;
 
             IsPlayerTurn = false;
+            m_combatCanvas.DeckView.SetInteractable(false);
             m_combatCanvas.SetEndTurnButtonInteractable(false);
             m_enemyTurnsRoutine = StartCoroutine(PlayEnemyTurns());
         }
@@ -109,8 +120,16 @@ namespace Deckbuilder.Combat
         private void StartPlayerTurn()
         {
             IsPlayerTurn = true;
+            m_deck.DrawTurnHand();
+            m_combatCanvas.DeckView.SetInteractable(true);
             m_player.OnTurnStart();
-            m_combatCanvas.SetEndTurnButtonInteractable(true);
+            m_combatCanvas.SetEndTurnButtonInteractable(!m_combatCanvas.DeckView.IsTransferring);
+        }
+
+        private void HandleDeckTransfersSettled()
+        {
+            if (IsPlayerTurn)
+                m_combatCanvas.SetEndTurnButtonInteractable(true);
         }
 
         private IEnumerator PlayEnemyTurns()
@@ -121,6 +140,7 @@ namespace Deckbuilder.Combat
                 yield return null;
 
             m_player.OnTurnEnd();
+            m_deck.DiscardHand();
 
             m_enemiesTakingTurn.Clear();
             m_enemiesTakingTurn.AddRange(m_enemies);
@@ -143,6 +163,15 @@ namespace Deckbuilder.Combat
                 yield return new WaitForSeconds(m_enemyTurnDuration);
 
             _enemy.OnTurnEnd();
+        }
+
+        private void StartDeck()
+        {
+            m_player.TryGetModule(out PlayerDeckModule _playerDeck);
+
+            m_deck.StartCombat(_playerDeck.Cards, RunRandom.GetStream(RandomChannel.Combat));
+            m_combatCanvas.DeckView.Bind(m_deck);
+            m_combatCanvas.DeckView.onTransfersSettled += HandleDeckTransfersSettled;
         }
 
         private void SpawnEnemies(IReadOnlyList<Entity> _enemyPrefabs)

@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 910185953793110241}
   - component: {fileID: 1408677950261307129}
   - component: {fileID: 6184720395817263940}
+  - component: {fileID: 9140968062274493154}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -219,12 +220,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f4da9fda59169474bff964ee4b6e1cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Player.PlayerActionController
-  m_testCard: {fileID: 11400000, guid: a1511020b13e33f6f288e6585a008032, type: 2}
-  m_moveModeKey: 41
-  m_selectCardKey: 42
   m_cellLayerMask:
     serializedVersion: 2
     m_Bits: 64
+  m_movementRangeStyle: {fileID: 11400000, guid: 04b251ab60532164bb4ee5e2286e8428, type: 2}
+  m_movementPathStyle: {fileID: 11400000, guid: fa772e03776067148b84ebbac0b746cd, type: 2}
+  m_targetZoneStyle: {fileID: 11400000, guid: 4d2a1e826e651484ba1fef4d6e22c95a, type: 2}
+  m_targetZoneBlockedStyle: {fileID: 11400000, guid: f9470a51c179eb5419233cbe49481217, type: 2}
+  m_effectZoneStyle: {fileID: 11400000, guid: 0c5a3addf09bbba41a1cdfad3d258dd3, type: 2}
 --- !u!114 &2000000000007777777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,18 +254,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityRoomMoverModule
   m_agent: {fileID: 2093910318927963282}
---- !u!114 &6184720395817263940
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2000000000001111111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7f6d033bb07f6044a301af6fa4b8814, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
 --- !u!114 &1408677950261307129
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,6 +270,67 @@ MonoBehaviour:
   _hudAnchor: {fileID: 8566380485586454612}
   _displayName: Player
   _level: 1
+--- !u!114 &6184720395817263940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7f6d033bb07f6044a301af6fa4b8814, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &9140968062274493154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000001111111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 121a29cc4709236499eb8bc291b7853a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Cards.PlayerDeckModule
+  m_startingDeck:
+  - card: {fileID: 11400000, guid: 260ec78a940b4f33875702f9f93e5138, type: 2}
+    upgraded: 0
+    copies: 4
+  - card: {fileID: 11400000, guid: 260ec78a940b4f33875702f9f93e5138, type: 2}
+    upgraded: 1
+    copies: 1
+  - card: {fileID: 11400000, guid: 7149be7d3e41457995f4abb41f473d78, type: 2}
+    upgraded: 0
+    copies: 4
+  - card: {fileID: 11400000, guid: 1cc6998544b8412e8b459b3615c274a3, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: e136924aac1a4b32b4ce81f6d2fcea23, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: caf6e8a7b8024dbc949c385eef24a253, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: 7bf010314fc643d2995e8e0e1b011cd1, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: d6ccaabfc3d441efb69ebda32e210722, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: 66c529d30a8145dabbc814e9139b0193, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: d5f71672e5f04f0f91ca572e7ee95452, type: 2}
+    upgraded: 1
+    copies: 1
+  - card: {fileID: 11400000, guid: 0f48bdd895c1429d8950424bac3c411f, type: 2}
+    upgraded: 0
+    copies: 1
+  - card: {fileID: 11400000, guid: 51f822f87c6149b7862462125d70bd6a, type: 2}
+    upgraded: 0
+    copies: 1
 --- !u!1 &2000000000012222221
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,7 +12,7 @@ namespace Deckbuilder.Cards
             return _entity != null && _entity.TryGetModule(out EntityCombatMoverModule _combatMover) ? _combatMover.EffectiveCell : null;
         }
 
-        public static bool IsWithinTargetZone(CombatManager _combatManager, CardConfig _card, Entity _caster, GridCell _targetCell)
+        public static bool IsWithinTargetZone(CombatManager _combatManager, CardInstance _card, Entity _caster, GridCell _targetCell)
         {
             GridCell _casterCell = GetEffectiveCell(_caster);
             if (_combatManager == null || _card == null || _targetCell == null || _casterCell == null)
@@ -28,7 +28,7 @@ namespace Deckbuilder.Cards
             return false;
         }
 
-        public static bool CanTarget(CombatManager _combatManager, CardConfig _card, Entity _caster, GridCell _targetCell)
+        public static bool CanTarget(CombatManager _combatManager, CardInstance _card, Entity _caster, GridCell _targetCell)
         {
             if (!IsWithinTargetZone(_combatManager, _card, _caster, _targetCell))
                 return false;
@@ -39,7 +39,7 @@ namespace Deckbuilder.Cards
             return true;
         }
 
-        public static bool Execute(CombatManager _combatManager, CardConfig _card, Entity _caster, GridCell _targetCell)
+        public static bool Execute(CombatManager _combatManager, CardInstance _card, Entity _caster, GridCell _targetCell)
         {
             if (!CanTarget(_combatManager, _card, _caster, _targetCell))
                 return false;

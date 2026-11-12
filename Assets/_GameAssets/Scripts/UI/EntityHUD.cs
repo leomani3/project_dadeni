@@ -81,6 +81,16 @@ public class EntityHUD : MonoBehaviour, IPoolable
             LeanPool.Despawn(display);
     }
 
+    public void SetHidden(bool _isHidden)
+    {
+        _fadeTween?.Kill();
+
+        if (_isHidden)
+            _canvasGroup.alpha = 0f;
+        else
+            _fadeTween = _canvasGroup.DOFade(1f, _fadeInDuration);
+    }
+
     public void OnSpawn()
     {
         _fadeTween?.Kill();

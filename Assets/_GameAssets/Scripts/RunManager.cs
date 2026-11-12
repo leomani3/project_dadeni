@@ -77,6 +77,7 @@ public class RunManager : Singleton<RunManager>
     {
         _currentEnemyGroup.Clear();
         _currentEnemyGroup.AddRange(_enemyPrefabs);
+        CurrentRoom.ClearEntityGroups();
 
         _playerPoseBeforeCombat = new Pose(Player.transform.position, Player.transform.rotation);
 

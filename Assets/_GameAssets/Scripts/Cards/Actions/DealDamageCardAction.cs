@@ -11,6 +11,9 @@ namespace Deckbuilder.Cards.Actions
 
         public float Damage => m_damage;
 
+        public override string DescriptionFormat => "Deal {0} damage";
+        public override object[] DescriptionValues => new object[] { m_damage };
+
         protected override void ApplyTo(Entity _entity, CardActionContext _context)
         {
             if (_entity.TryGetModule(out EntityHealthModule _health))

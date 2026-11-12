@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using Utils;
 
@@ -9,12 +10,13 @@ namespace Deckbuilder.Grid
         private const float MinimumCellGap = 0.001f;
 
         [SerializeField] private Transform m_cellsRoot;
+        [SerializeField, Required] private Material m_highlightMaterial;
 
         private readonly Dictionary<Vector2Int, GridCell> m_cellsByCoordinate = new();
         private readonly Dictionary<CellType, List<GridCell>> m_cellsByType = new();
         private readonly List<GridCell> m_cells = new();
-        private readonly Dictionary<HighlightLayer, HashSet<GridCell>> m_highlightedCellsByLayer = new();
-        private readonly HashSet<GridCell> m_highlightBuffer = new();
+        private readonly List<CellHighlightSource> m_highlightSources = new();
+        private readonly CellZoneMeshBuilder m_highlightMeshBuilder = new();
 
         public IReadOnlyList<GridCell> Cells => m_cells;
         public float CellSize { get; private set; } = 1f;
@@ -172,7 +174,7 @@ namespace Deckbuilder.Grid
             }
 
             if (_randomOrder)
-                Shuffle(_freeCells);
+                RunRandom.GetStream(RandomChannel.Combat).Shuffle(_freeCells);
 
             return _freeCells;
         }
@@ -181,15 +183,6 @@ namespace Deckbuilder.Grid
         {
             List<GridCell> _freeCells = GetFreeSpawnCells(_spawnCellType, _random);
             return _freeCells.Count > 0 ? _freeCells[0] : null;
-        }
-
-        private static void Shuffle(List<GridCell> _cells)
-        {
-            for (int _i = _cells.Count - 1; _i > 0; _i--)
-            {
-                int _swapIndex = Random.Range(0, _i + 1);
-                (_cells[_i], _cells[_swapIndex]) = (_cells[_swapIndex], _cells[_i]);
-            }
         }
 
         public GridCell GetCell(Vector2Int _coordinate)
@@ -211,6 +204,17 @@ namespace Deckbuilder.Grid
             }
         }
 
+        public void GetCellsInZone(Vector2Int _origin, GridShape _shape, int _size, int _minSize, List<GridCell> _results)
+        {
+            _results.Clear();
+
+            foreach (Vector2Int _coordinate in GridShapeUtility.GetCoordinates(_origin, _shape, _size, _minSize))
+            {
+                if (m_cellsByCoordinate.TryGetValue(_coordinate, out GridCell _cell))
+                    _results.Add(_cell);
+            }
+        }
+
         public int GetManhattanDistance(GridCell _a, GridCell _b)
         {
             return GridShapeUtility.ManhattanDistance(_a.Coordinate, _b.Coordinate);
@@ -221,9 +225,9 @@ namespace Deckbuilder.Grid
             return GridPathfinder.FindPath(_start, _goal, GetCell, _ignoreOccupants, _randomize);
         }
 
-        public List<GridCell> GetReachableCells(GridCell _start, int _maxSteps, bool _ignoreOccupants = false)
+        public void GetReachableCells(GridCell _start, int _maxSteps, List<GridCell> _results, bool _ignoreOccupants = false)
         {
-            return GridPathfinder.GetReachableCells(_start, _maxSteps, GetCell, _ignoreOccupants);
+            GridPathfinder.GetReachableCells(_start, _maxSteps, GetCell, _results, _ignoreOccupants);
         }
 
         public bool HasLineOfSight(GridCell _from, GridCell _to, out GridCell _blockingCell, Entity _ignoreOccupant = null)
@@ -231,55 +235,37 @@ namespace Deckbuilder.Grid
             return GridLineOfSight.HasLineOfSight(_from, _to, GetCell, out _blockingCell, _ignoreOccupant);
         }
 
-        public void SetHighlightLayer(HighlightLayer _layer, IEnumerable<GridCell> _cells)
+        public CellHighlightSource CreateHighlightSource(CellHighlightStyle _style)
         {
-            HashSet<GridCell> _highlightedCells = GetHighlightedCells(_layer);
+            CellHighlightSource _source = new CellHighlightSource(this, m_highlightMaterial, _style);
+            m_highlightSources.Add(_source);
 
-            m_highlightBuffer.Clear();
-            foreach (GridCell _cell in _cells)
-                m_highlightBuffer.Add(_cell);
+            return _source;
+        }
 
-            foreach (GridCell _cell in _highlightedCells)
+        private void LateUpdate()
+        {
+            for (int _i = m_highlightSources.Count - 1; _i >= 0; _i--)
             {
-                if (!m_highlightBuffer.Contains(_cell))
-                    _cell.SetHighlight(_layer, false);
+                CellHighlightSource _source = m_highlightSources[_i];
+
+                if (_source.IsReleased)
+                {
+                    m_highlightSources.RemoveAt(_i);
+                    continue;
+                }
+
+                if (_source.IsDirty)
+                    _source.Rebuild(m_highlightMeshBuilder);
             }
-
-            foreach (GridCell _cell in m_highlightBuffer)
-            {
-                if (!_highlightedCells.Contains(_cell))
-                    _cell.SetHighlight(_layer, true);
-            }
-
-            _highlightedCells.Clear();
-            _highlightedCells.UnionWith(m_highlightBuffer);
         }
 
-        public void ClearHighlightLayer(HighlightLayer _layer)
+        private void OnDestroy()
         {
-            HashSet<GridCell> _highlightedCells = GetHighlightedCells(_layer);
+            foreach (CellHighlightSource _source in m_highlightSources)
+                _source.Release();
 
-            foreach (GridCell _cell in _highlightedCells)
-                _cell.SetHighlight(_layer, false);
-
-            _highlightedCells.Clear();
-        }
-
-        public void ClearAllHighlights()
-        {
-            foreach (HashSet<GridCell> _highlightedCells in m_highlightedCellsByLayer.Values)
-                _highlightedCells.Clear();
-
-            foreach (GridCell _cell in m_cells)
-                _cell.HideAllHighlights();
-        }
-
-        private HashSet<GridCell> GetHighlightedCells(HighlightLayer _layer)
-        {
-            if (!m_highlightedCellsByLayer.TryGetValue(_layer, out HashSet<GridCell> _highlightedCells))
-                m_highlightedCellsByLayer[_layer] = _highlightedCells = new HashSet<GridCell>();
-
-            return _highlightedCells;
+            m_highlightSources.Clear();
         }
 
         public bool MoveEntity(Entity _entity, GridCell _targetCell)
