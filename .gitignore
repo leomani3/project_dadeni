@@ -114,3 +114,6 @@ InitTestScene*.unity*
 # Headless core test runner build output
 /Tools/**/bin/
 /Tools/**/obj/
+
+# Tools/ holds hand-written projects, not Unity-generated ones, so they beat the *.csproj rule above
+!/Tools/**/*.csproj

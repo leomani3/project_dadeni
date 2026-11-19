@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Dadeni.Core.Tests.Headless</AssemblyName>
+    <RootNamespace>Dadeni.Core.Tests.Headless</RootNamespace>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0618;CS0649;CS0067;MSB3277</NoWarn>
+    <UnityEditorRoot>C:\Program Files\Unity\Hub\Editor\6000.3.9f1</UnityEditorRoot>
+    <UnityManagedDir>$(UnityEditorRoot)\Editor\Data\Managed\UnityEngine</UnityManagedDir>
+    <NUnitDll>$(MSBuildThisFileDirectory)..\..\Library\PackageCache\com.unity.ext.nunit@d8c07649098d\net40\unity-custom\nunit.framework.dll</NUnitDll>
+    <ProjectAssets>$(MSBuildThisFileDirectory)..\..\Assets</ProjectAssets>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ProjectAssets)\_GameAssets\Scripts\Core\**\*.cs" />
+    <Compile Include="$(ProjectAssets)\Tests\Dadeni.Core.Tests\**\*.cs" />
+    <Compile Include="HeadlessTestRunner.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(UnityManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>$(NUnitDll)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="VerifyDependencies" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(UnityManagedDir)\UnityEngine.CoreModule.dll')"
+           Text="UnityEngine.CoreModule.dll not found at $(UnityManagedDir). Point UnityEditorRoot at the installed Unity 6000.3.9f1 editor." />
+    <Error Condition="!Exists('$(NUnitDll)')"
+           Text="nunit.framework.dll not found at $(NUnitDll). Open the Unity project once so Library/PackageCache is populated, then update NUnitDll if the package hash changed." />
+  </Target>
+
+</Project>
