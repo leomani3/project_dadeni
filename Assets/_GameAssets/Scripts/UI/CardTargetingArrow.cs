@@ -10,6 +10,7 @@ public class CardTargetingArrow : MonoBehaviour
     [SerializeField, Required] private Image _head;
     [SerializeField, Required] private Image _segmentTemplate;
     [SerializeField, Min(2)] private int _segmentCount = 14;
+    [SerializeField] private float _headTipOffset;
     [SerializeField, Range(0f, 1f)] private float _curveBend = 0.75f;
     [SerializeField] private Vector2 _segmentScaleRange = new Vector2(0.45f, 1f);
     [SerializeField] private Color _idleColor = new Color(0.85f, 0.85f, 0.85f);
@@ -38,7 +39,7 @@ public class CardTargetingArrow : MonoBehaviour
             _segments[i].color = _color;
         }
 
-        PlaceAlongCurve(_head.rectTransform, _fromLocalPosition, _controlPoint, _toLocalPosition, 1f);
+        PlaceAlongCurve(_head.rectTransform, _fromLocalPosition, _controlPoint, _toLocalPosition, 1f, _headTipOffset);
         _head.color = _color;
         _head.rectTransform.SetAsLastSibling();
     }
@@ -71,13 +72,13 @@ public class CardTargetingArrow : MonoBehaviour
         return Vector2.Lerp(_midPoint, _cornerAboveStart, _curveBend);
     }
 
-    private static void PlaceAlongCurve(RectTransform _element, Vector2 _from, Vector2 _control, Vector2 _to, float _t)
+    private static void PlaceAlongCurve(RectTransform _element, Vector2 _from, Vector2 _control, Vector2 _to, float _t, float _forwardOffset = 0f)
     {
         Vector2 _position = EvaluateBezier(_from, _control, _to, _t);
-        Vector2 _tangent = EvaluateBezierTangent(_from, _control, _to, _t);
+        Vector2 _forward = EvaluateBezierTangent(_from, _control, _to, _t).normalized;
 
-        _element.anchoredPosition = _position;
-        _element.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(_tangent.y, _tangent.x) * Mathf.Rad2Deg);
+        _element.anchoredPosition = _position - _forward * _forwardOffset;
+        _element.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(_forward.y, _forward.x) * Mathf.Rad2Deg);
     }
 
     private static Vector2 EvaluateBezier(Vector2 _from, Vector2 _control, Vector2 _to, float _t)

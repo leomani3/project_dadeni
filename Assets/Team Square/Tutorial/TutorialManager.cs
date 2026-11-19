@@ -2,7 +2,6 @@
     using System.Collections.Generic;
     using DG.Tweening;
     using MyBox;
-    using Sirenix.OdinInspector;
     using UnityEngine;
     using UnityEngine.Serialization;
 
@@ -25,74 +24,45 @@
 
         #region Fields
         public bool enabled = true;
-        [HideLabel, Title("$stepID", TitleAlignment = TitleAlignments.Centered, Bold = true)]
-        [FoldoutGroup("$stepID")]
         public string stepID;
 
-        [FoldoutGroup("$stepID")]
         public TutorialEvent triggerEvent;
 
-        [FoldoutGroup("$stepID")]
         public TutorialEvent validateEvent;
 
-        [FoldoutGroup("$stepID")]
         public bool allowRetroActiveValidation;
 
-        [FoldoutGroup("$stepID")]
         public TutorialTarget tutorialTarget;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(tutorialTarget), TutorialTarget.UI)]
         public RectTransform rectTarget;
         
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(tutorialTarget), TutorialTarget.World)]
         public Transform worldTarget;
 
-        [FoldoutGroup("$stepID")]
         public float delay;
 
-        [FoldoutGroup("$stepID")]
         [Space, Header("Highlight")]
         public bool useHighlight;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useHighlight))]
         public bool highlightModal;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useHighlight))]
         public bool highlightDespawnOnComplete;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useHighlight))]
         public float highlightFinalSize;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useHighlight))]
         public Vector3 highlightOffset;
 
-        [FoldoutGroup("$stepID")]
         [Space, Header("Text Bubble")]
         public bool useTextBubble;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useTextBubble))]
         public string title;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useTextBubble)), TextArea(10, 20)]
+        [TextArea(10, 20)]
         public string text;
 
-        [FoldoutGroup("$stepID")]
-        [ShowIf(nameof(useTextBubble))]
         public Vector3 offset;
 
-        [FoldoutGroup("$stepID")]
         [Space, Header("Time Control")]
         public bool freezeTime;
-        [FoldoutGroup("$stepID")]
-        public bool freezeCameraMovements;
 
         private bool m_active;
         private float m_previousTimeScale;
@@ -197,9 +167,6 @@ private void TriggerTutorialStep()
             Time.timeScale = 0f;
         }
 
-        if (freezeCameraMovements)
-            CameraController.Instance.SetControl(false);
-
         if (useHighlight)
         {
             switch (tutorialTarget)
@@ -280,9 +247,6 @@ private void TriggerTutorialStep()
                     {
                         Time.timeScale = m_previousTimeScale;
                     }
-
-                    if (freezeCameraMovements)
-                        CameraController.Instance.SetControl(true);
                 }
 
                 GameData.Instance.completedFtueSteps.Add(stepID);

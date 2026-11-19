@@ -19,6 +19,7 @@ namespace Deckbuilder.Player
         [SerializeField, Required] private CellHighlightStyle m_effectZoneStyle;
 
         private GridCell m_hoveredCell;
+        private bool m_isMoveModeActive;
         private CombatManager m_combatManager;
         private ArenaGrid m_grid;
 
@@ -55,6 +56,7 @@ namespace Deckbuilder.Player
             base.OnTurnEnd();
 
             enabled = false;
+            m_isMoveModeActive = false;
 
             ClearMoveHighlights();
             ClearCardHighlights();
@@ -65,6 +67,7 @@ namespace Deckbuilder.Player
             base.OnCombatExit();
 
             enabled = false;
+            m_isMoveModeActive = false;
 
             ReleaseHighlightSources();
         }
@@ -109,65 +112,76 @@ namespace Deckbuilder.Player
 
         private void Update()
         {
-            UpdateHover();
-
             if (!ResolveCombatManager())
+            {
+                m_hoveredCell = null;
                 return;
+            }
+
+            m_hoveredCell = m_grid.GetCellUnderCursor(m_cellLayerMask);
 
             CombatDeckView _deckView = m_combatManager.DeckView;
             GridCell _entityCell = CardExecutor.GetEffectiveCell(Owner);
 
             if (_entityCell == null)
             {
+                m_isMoveModeActive = false;
                 ClearMoveHighlights();
                 ClearCardHighlights();
                 return;
             }
 
             if (_deckView.SelectedCard != null)
+            {
+                m_isMoveModeActive = false;
                 UpdateCardTargeting(_deckView, _deckView.SelectedCard, _entityCell);
+            }
             else if (_deckView.FocusedCard != null)
+            {
+                m_isMoveModeActive = false;
                 UpdateCardPreview(_deckView.FocusedCard, _entityCell);
+            }
             else
+            {
                 UpdateMoveMode(_entityCell);
-        }
-
-        private void UpdateHover()
-        {
-            m_hoveredCell = null;
-
-            if (UIManager.Instance.IsOverUI)
-                return;
-
-            if (CameraManager.Instance == null)
-                return;
-
-            Camera _camera = CameraManager.Instance.MainCam;
-            if (_camera == null || Mouse.current == null)
-                return;
-
-            Ray _ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(_ray, out RaycastHit _hit, Mathf.Infinity, m_cellLayerMask))
-                m_hoveredCell = _hit.collider.GetComponentInParent<GridCell>();
+            }
         }
 
         private void UpdateMoveMode(GridCell _entityCell)
         {
             ClearCardHighlights();
 
+            bool _isHoveringCharacter = m_hoveredCell == _entityCell;
+            bool _leftPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+
+            if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
+                m_isMoveModeActive = false;
+
+            if (_isHoveringCharacter && _leftPressed)
+                m_isMoveModeActive = !m_isMoveModeActive;
+
+            if (!m_isMoveModeActive && !_isHoveringCharacter)
+            {
+                ClearMoveHighlights();
+                return;
+            }
+
             m_grid.GetReachableCells(_entityCell, GetRemainingMovementPoints(), m_reachableCells);
             m_movementRangeHighlight.Set(m_reachableCells);
 
-            bool _isHoveredCellReachable = m_hoveredCell != null && m_reachableCells.Contains(m_hoveredCell);
-            List<GridCell> _path = _isHoveredCellReachable ? m_grid.FindPath(_entityCell, m_hoveredCell) : null;
+            bool _canMoveToHoveredCell = m_isMoveModeActive && m_hoveredCell != null && m_reachableCells.Contains(m_hoveredCell);
+            List<GridCell> _path = _canMoveToHoveredCell ? m_grid.FindPath(_entityCell, m_hoveredCell) : null;
 
             if (_path != null)
                 m_movementPathHighlight.Set(_path);
             else
                 m_movementPathHighlight.Clear();
 
-            if (_isHoveredCellReachable && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            if (_canMoveToHoveredCell && _leftPressed)
+            {
                 EnqueueMove(m_hoveredCell);
+                m_isMoveModeActive = false;
+            }
         }
 
         private void UpdateCardPreview(CardInstance _card, GridCell _entityCell)

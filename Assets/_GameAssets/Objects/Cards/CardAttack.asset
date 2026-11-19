@@ -27,22 +27,28 @@ MonoBehaviour:
     m_shape: 1
     m_range: {x: 0, y: 2}
   m_actions:
-  - rid: 1493613253122588761
+  - rid: 3017391289448792153
   m_costUpgraded: 3
   m_exhaustsUpgraded: 0
   m_targetZoneUpgraded:
-    m_shape: 0
-    m_range: {x: 0, y: 1}
-  m_requiresLineOfSightUpgraded: 0
+    m_shape: 2
+    m_range: {x: 0, y: 5}
+  m_requiresLineOfSightUpgraded: 1
   m_effectZoneUpgraded:
-    m_shape: 0
-    m_range: {x: 0, y: 1}
-  m_actionsUpgraded: []
+    m_shape: 1
+    m_range: {x: 0, y: 2}
+  m_actionsUpgraded:
+  - rid: 3017391289448792154
   references:
     version: 2
     RefIds:
-    - rid: 1493613253122588761
+    - rid: 3017391289448792153
       type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
       data:
         m_targetTeams: 3
         m_damage: 5
+    - rid: 3017391289448792154
+      type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+      data:
+        m_targetTeams: 3
+        m_damage: 8

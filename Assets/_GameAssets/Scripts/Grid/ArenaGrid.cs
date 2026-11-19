@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Utils;
 
 namespace Deckbuilder.Grid
 {
-    public class ArenaGrid : MonoBehaviour
+    public class ArenaGrid : MonoBehaviour, IGridTopology
     {
         private const float MinimumCellGap = 0.001f;
 
@@ -17,6 +18,7 @@ namespace Deckbuilder.Grid
         private readonly List<GridCell> m_cells = new();
         private readonly List<CellHighlightSource> m_highlightSources = new();
         private readonly CellZoneMeshBuilder m_highlightMeshBuilder = new();
+        private readonly List<Vector2Int> m_coordinateBuffer = new();
 
         public IReadOnlyList<GridCell> Cells => m_cells;
         public float CellSize { get; private set; } = 1f;
@@ -185,6 +187,25 @@ namespace Deckbuilder.Grid
             return _freeCells.Count > 0 ? _freeCells[0] : null;
         }
 
+        public GridCell GetCellUnderCursor(LayerMask _cellLayerMask)
+        {
+            if (UIManager.Instance.IsOverUI)
+                return null;
+
+            if (CameraManager.Instance == null || Mouse.current == null)
+                return null;
+
+            Camera _camera = CameraManager.Instance.MainCam;
+            if (_camera == null)
+                return null;
+
+            Ray _ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+            return Physics.Raycast(_ray, out RaycastHit _hit, Mathf.Infinity, _cellLayerMask)
+                ? _hit.collider.GetComponentInParent<GridCell>()
+                : null;
+        }
+
         public GridCell GetCell(Vector2Int _coordinate)
         {
             return m_cellsByCoordinate.TryGetValue(_coordinate, out GridCell _cell) ? _cell : null;
@@ -220,19 +241,79 @@ namespace Deckbuilder.Grid
             return GridShapeUtility.ManhattanDistance(_a.Coordinate, _b.Coordinate);
         }
 
+        public bool Contains(Vector2Int _coordinate)
+        {
+            return m_cellsByCoordinate.ContainsKey(_coordinate);
+        }
+
+        public CellFlags GetFlags(Vector2Int _coordinate)
+        {
+            if (!m_cellsByCoordinate.TryGetValue(_coordinate, out GridCell _cell))
+                return CellFlags.None;
+
+            CellFlags _flags = CellFlags.None;
+
+            if (_cell.IsObstacle)
+                _flags |= CellFlags.Obstacle;
+
+            if (_cell.IsOccupied)
+                _flags |= CellFlags.Occupied;
+
+            return _flags;
+        }
+
         public List<GridCell> FindPath(GridCell _start, GridCell _goal, bool _ignoreOccupants = false, bool _randomize = false)
         {
-            return GridPathfinder.FindPath(_start, _goal, GetCell, _ignoreOccupants, _randomize);
+            if (_start == null || _goal == null)
+                return null;
+
+            RandomStream _random = _randomize ? RunRandom.GetStream(RandomChannel.Combat) : null;
+
+            if (!GridPathfinder.TryFindPath(this, _start.Coordinate, _goal.Coordinate, m_coordinateBuffer, _ignoreOccupants, _random))
+                return null;
+
+            List<GridCell> _path = new List<GridCell>(m_coordinateBuffer.Count);
+            foreach (Vector2Int _coordinate in m_coordinateBuffer)
+                _path.Add(GetCell(_coordinate));
+
+            return _path;
         }
 
         public void GetReachableCells(GridCell _start, int _maxSteps, List<GridCell> _results, bool _ignoreOccupants = false)
         {
-            GridPathfinder.GetReachableCells(_start, _maxSteps, GetCell, _results, _ignoreOccupants);
+            _results.Clear();
+
+            if (_start == null)
+                return;
+
+            GridPathfinder.GetReachableCoordinates(this, _start.Coordinate, _maxSteps, m_coordinateBuffer, _ignoreOccupants);
+
+            foreach (Vector2Int _coordinate in m_coordinateBuffer)
+            {
+                GridCell _cell = GetCell(_coordinate);
+
+                if (_cell != null)
+                    _results.Add(_cell);
+            }
         }
 
         public bool HasLineOfSight(GridCell _from, GridCell _to, out GridCell _blockingCell, Entity _ignoreOccupant = null)
         {
-            return GridLineOfSight.HasLineOfSight(_from, _to, GetCell, out _blockingCell, _ignoreOccupant);
+            _blockingCell = null;
+
+            if (_from == null || _to == null)
+                return false;
+
+            Vector2Int? _ignoreOccupantAt = null;
+
+            if (_ignoreOccupant != null && _ignoreOccupant.TryGetModule(out EntityCombatMoverModule _mover) && _mover.CurrentCell != null)
+                _ignoreOccupantAt = _mover.CurrentCell.Coordinate;
+
+            if (GridLineOfSight.HasLineOfSight(this, _from.Coordinate, _to.Coordinate, out Vector2Int _blockingCoordinate, _ignoreOccupantAt))
+                return true;
+
+            _blockingCell = GetCell(_blockingCoordinate);
+            return false;
         }
 
         public CellHighlightSource CreateHighlightSource(CellHighlightStyle _style)

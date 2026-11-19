@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,9 +27,6 @@ public class Bootstraper : MonoBehaviour
 
     private static void LoadSceneAfterInit()
     {
-        if (GameConfig.Instance.cheatSettings.noMenu)
-            RunManager.Instance.StartRun();
-        else
-            SceneManager.LoadSceneAsync(MENU_SCENE, LoadSceneMode.Single);
+        GameFlow.Instance.Boot();
     }
 }

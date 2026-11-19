@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class SaveManager : MonoBehaviour
@@ -7,11 +6,6 @@ public class SaveManager : MonoBehaviour
 
     private float m_timeCpt;
     
-    void Awake()
-    {
-        GameData.Instance.Init();
-    }
-
     private void Update()
     {
         m_timeCpt += Time.deltaTime;

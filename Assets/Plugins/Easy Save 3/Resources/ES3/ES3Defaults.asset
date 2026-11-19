@@ -38,6 +38,7 @@ MonoBehaviour:
     - Assembly-CSharp
     - Assembly-CSharp-firstpass
     - CW.Common
+    - Dadeni.Core
     - EPO
     - EPOHDRP
     - EPOURP

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Collider))]
@@ -18,9 +18,12 @@ public class GroundInteractable : MonoBehaviour, IInteractable
         if (_eventData.button != PointerEventData.InputButton.Left)
             return;
 
+        if (!GameFlow.Instance.IsPlayerControlEnabled)
+            return;
+
         Vector3 _destination = _eventData.pointerPressRaycast.worldPosition;
 
-        RunManager.Instance.Player.TryGetModule(out EntityRoomMoverModule _roomMover);
+        GameFlow.Instance.Player.TryGetModule(out EntityRoomMoverModule _roomMover);
 
         if (!_roomMover.MoveTo(_destination))
             return;

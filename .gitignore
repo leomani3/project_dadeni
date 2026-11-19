@@ -107,3 +107,10 @@ InitTestScene*.unity*
 
 # Jetbrains Rider project folder
 /.idea/
+
+# Screenshots captured by the MCP play-mode harness
+/Captures/
+
+# Headless core test runner build output
+/Tools/**/bin/
+/Tools/**/obj/

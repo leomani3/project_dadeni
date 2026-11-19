@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using Deckbuilder.StatusEffects;
 using DG.Tweening;
@@ -87,6 +87,13 @@ public class EntityHealthModule : EntityModule
     {
         base.OnCombatExit();
         SetBlock(0);
+    }
+
+    public void SetHealth(float _health)
+    {
+        _currentHealth = Mathf.Clamp(_health, 0f, MaxHealth);
+        _isDead = _currentHealth <= 0f;
+        OnHealthChanged?.Invoke(_currentHealth, MaxHealth, 0f, false, true);
     }
 
     public void RefillToMaxHealth()

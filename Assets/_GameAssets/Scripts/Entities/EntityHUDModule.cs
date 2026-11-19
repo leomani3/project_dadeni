@@ -1,4 +1,4 @@
-using Deckbuilder.StatusEffects;
+﻿using Deckbuilder.StatusEffects;
 using Lean.Pool;
 using UnityEngine;
 
@@ -19,6 +19,9 @@ public class EntityHUDModule : EntityModule
     {
         base.OnAllModuleInitialized();
 
+        if (GameFlow.Instance.State != GameFlowState.Run)
+            return;
+
         Owner.TryGetModule(out _healthModule);
         _healthModule.OnHealthChanged += HandleHealthChanged;
         _healthModule.OnBlockChanged += HandleBlockChanged;
@@ -34,6 +37,10 @@ public class EntityHUDModule : EntityModule
     public override void Cleanup()
     {
         base.Cleanup();
+
+        if (_healthModule == null)
+            return;
+
         UnsubscribeFromModules();
         DespawnHUD();
     }

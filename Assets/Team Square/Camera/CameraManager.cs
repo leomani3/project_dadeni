@@ -1,29 +1,47 @@
 using MyBox;
-using Unity.Cinemachine;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class CameraManager : Singleton<CameraManager>
 {
-    [SerializeField] private Camera mainCam;
-    [SerializeField] private CinemachineCamera _virtualCamera;
+    [SerializeField, Required] private Camera mainCam;
+    [SerializeField, Required] private Transform _focusAnchor;
+
+    [Header("Focus Movement")]
+    [SerializeField] private float _focusSmoothTime = 0.25f;
+    [SerializeField] private float _maxFocusSpeed = 25f;
+
+    private Transform _focusTarget;
+    private bool _hasFocus;
+    private Vector3 _focusVelocity;
 
     public Camera MainCam => mainCam;
-    public CinemachineCamera VirtualCamera => _virtualCamera;
 
-    public void RegisterMainCamera(Camera sceneCamera)
+    public void FocusOn(Transform _focusPoint)
     {
-        if (sceneCamera == null) return;
+        SetFocus(_focusPoint);
+    }
 
-        if (mainCam != null && mainCam != sceneCamera)
-            Destroy(mainCam.gameObject);
+    public void FollowTarget(Transform _target)
+    {
+        SetFocus(_target);
+    }
 
-        if (_virtualCamera != null)
-        {
-            _virtualCamera.transform.position = sceneCamera.transform.position;
-            _virtualCamera.transform.rotation = sceneCamera.transform.rotation;
-        }
+    private void SetFocus(Transform _target)
+    {
+        _focusTarget = _target;
+        _focusVelocity = Vector3.zero;
 
-        mainCam = sceneCamera;
-        mainCam.transform.SetParent(transform);
+        if (_hasFocus) return;
+
+        _hasFocus = true;
+        _focusAnchor.position = _target.position;
+    }
+
+    private void LateUpdate()
+    {
+        if (_focusTarget == null) return;
+
+        _focusAnchor.position = Vector3.SmoothDamp(_focusAnchor.position, _focusTarget.position, ref _focusVelocity, _focusSmoothTime, _maxFocusSpeed);
     }
 }

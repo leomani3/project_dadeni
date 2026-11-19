@@ -16,7 +16,7 @@ MonoBehaviour:
   m_title: Defend
   m_type: 1
   m_illustration: {fileID: 0}
-  m_castAnimation: {fileID: 0}
+  m_castAnimation: {fileID: 7400000, guid: 8bb5f980ab0faa944b787b776aa0c925, type: 2}
   m_cost: 1
   m_exhausts: 0
   m_targetZone:

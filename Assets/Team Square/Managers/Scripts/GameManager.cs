@@ -37,9 +37,6 @@ public partial class GameManager : Singleton<GameManager>
     [Button]
     public async void ResetRun()
     {
-        CameraController.Instance.SetControl(false);
-    
-    
         FadeManager.Instance.FadeIn(() =>
         {
             DespawnPooledObjectAndTuto();
@@ -56,16 +53,11 @@ public partial class GameManager : Singleton<GameManager>
     public void StartRun()
     {
         SetPause(false);
-        
-        CameraController.Instance.SetControl(false);
-    
+
         DespawnPooledObjectAndTuto();
     
         if (SceneManager.GetActiveScene().name == "MainScene")
-        {
-            CameraController.Instance.SetControl(true);
             OnRunStart?.Invoke();
-        }
     }
     
     private void DespawnPooledObjectAndTuto()
@@ -77,8 +69,5 @@ public partial class GameManager : Singleton<GameManager>
     public void SetPause(bool paused)
     {
         m_isPaused = paused;
-    
-        if (CameraController.Instance != null)
-            CameraController.Instance.SetControl(!paused);
     }
 }

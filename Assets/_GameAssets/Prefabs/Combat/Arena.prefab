@@ -61,6 +61,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Combat.Arena
   m_grid: {fileID: 6794819141009247680}
+  m_turnCursorPrefab: {fileID: 7400000000000000003, guid: 5f98f70145324df881a2bb171d1d0aa9, type: 3}
+  m_cellLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  m_placementCellStyle: {fileID: 11400000, guid: dc0129db17134b52baaed9dbbb960c7c, type: 2}
+  m_placementHoverStyle: {fileID: 11400000, guid: 76bac998e77f477d9a200f1e03a09d02, type: 2}
+  m_combatStartDelay: 0.75
+  m_turnTransitionDelay: 0.35
   m_enemyTurnDuration: 0.5
   m_deck:
     m_cardsDrawnPerTurn: 5

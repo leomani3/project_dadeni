@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -26,16 +26,6 @@ public class GameData : ScriptableObject
 	private static void ResetStaticInstance()
 	{
 		_instance = null;
-	}
-
-	public void Init()
-	{
-#if UNITY_EDITOR
-		if (GameConfig.Instance.cheatSettings.startResetData)
-		{
-			ResetGameData();
-		}
-#endif
 	}
 
 	[Button]
@@ -66,18 +56,15 @@ public class GameData : ScriptableObject
 	#region General
 
 	public bool firstGameLaunch = true;
-	public bool runExistInSave;
-	public bool runStarted;
 	
 	public static void ResetGameData()
 	{
 		Instance.ResetCurrencies();
 		Instance.teckTreeNodesLevels = new SerializableDictionary<string, int>();
 		Instance.firstGameLaunch = true;
-		Instance.runStarted = false;
 		Instance.completedFtueSteps.Clear();
+		Instance.ResetCharacterProgress();
 
-		Instance.runExistInSave = false;
 
 		Instance.currentQuestIndex = 0;
 		Instance.completedQuestIds = new List<string>();
@@ -98,7 +85,6 @@ public class GameData : ScriptableObject
 	{
 		ResetRunCurrencies();
 		
-		runStarted = false;
 
 		Save();
 	}
@@ -342,6 +328,61 @@ public class GameData : ScriptableObject
 
 		onNodeLevelUp?.Invoke(teckTreeNodesLevels[_nodeID]);
 		return teckTreeNodesLevels[_nodeID];
+	}
+	#endregion
+
+	#region Meta Progression
+	[Header("Meta Progression")]
+	public string lastSelectedCharacterId = string.Empty;
+	public SerializableDictionary<string, CharacterProgress> characterProgress = new SerializableDictionary<string, CharacterProgress>();
+
+	public void ResetCharacterProgress()
+	{
+		lastSelectedCharacterId = string.Empty;
+		characterProgress = new SerializableDictionary<string, CharacterProgress>();
+
+		foreach (CharacterConfig characterConfig in GameAssets.Instance.characterConfigs)
+			characterProgress.Add(characterConfig.Id, new CharacterProgress(characterConfig.UnlockedByDefault));
+	}
+
+	public CharacterProgress GetCharacterProgress(string _characterId)
+	{
+		if (!characterProgress.ContainsKey(_characterId))
+			characterProgress.Add(_characterId, new CharacterProgress(GameAssets.Instance.GetCharacter(_characterId).UnlockedByDefault));
+
+		return characterProgress[_characterId];
+	}
+
+	public bool IsCharacterUnlocked(string _characterId)
+	{
+		return GetCharacterProgress(_characterId).unlocked;
+	}
+
+	public void UnlockCharacter(string _characterId)
+	{
+		GetCharacterProgress(_characterId).unlocked = true;
+		isDirty = true;
+	}
+
+	public void SetLastSelectedCharacter(string _characterId)
+	{
+		lastSelectedCharacterId = _characterId;
+		isDirty = true;
+	}
+
+	public void RegisterRunStarted(string _characterId)
+	{
+		GetCharacterProgress(_characterId).runsStarted++;
+		firstGameLaunch = false;
+		isDirty = true;
+	}
+
+	public void RegisterRunFinished(string _characterId, RunOutcome _outcome)
+	{
+		if (_outcome == RunOutcome.Victory)
+			GetCharacterProgress(_characterId).runsWon++;
+
+		isDirty = true;
 	}
 	#endregion
 }
