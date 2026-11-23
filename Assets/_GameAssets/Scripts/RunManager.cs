@@ -22,13 +22,11 @@ public class RunManager : Singleton<RunManager>
     [SerializeField] private SerializableDictionary<RoomType, Room> _roomPrefabs = new SerializableDictionary<RoomType, Room>();
     [SerializeField] private MapGenerationSettings _mapGenerationSettings = new MapGenerationSettings();
 
-    private readonly List<Entity> _currentEnemyGroup = new List<Entity>();
     private readonly List<GameObject> _mainSceneRootsHiddenDuringCombat = new List<GameObject>();
     private Pose _playerPoseBeforeCombat;
     private bool _isChangingRoom;
 
     public Entity Player => GameFlow.Instance.Player;
-    public IReadOnlyList<Entity> CurrentEnemyGroup => _currentEnemyGroup;
     public RunState CurrentRun { get; private set; }
     public MapData CurrentMap { get; private set; }
     public Room CurrentRoom { get; private set; }
@@ -74,7 +72,6 @@ public class RunManager : Singleton<RunManager>
             CurrentRoom = null;
         }
 
-        _currentEnemyGroup.Clear();
         _isChangingRoom = false;
 
         SaveSystem.DeleteRun();
@@ -123,8 +120,7 @@ public class RunManager : Singleton<RunManager>
         CaptureRunState();
         SaveSystem.SaveRun(CurrentRun);
 
-        _currentEnemyGroup.Clear();
-        _currentEnemyGroup.AddRange(_enemyPrefabs);
+        GameFlow.Instance.SetCombatEnemies(_enemyPrefabs);
         CurrentRoom.ClearEntityGroups();
 
         _playerPoseBeforeCombat = new Pose(Player.transform.position, Player.transform.rotation);
@@ -134,10 +130,8 @@ public class RunManager : Singleton<RunManager>
         SceneManager.LoadSceneAsync(CombatSceneName, LoadSceneMode.Additive);
     }
 
-    public async void EndCombat()
+    public async void ReturnFromCombat()
     {
-        _currentEnemyGroup.Clear();
-
         await SceneManager.UnloadSceneAsync(CombatSceneName);
 
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(MainSceneName));
@@ -173,7 +167,6 @@ public class RunManager : Singleton<RunManager>
     private async Task LoadRun(RunState _runState)
     {
         CurrentRun = _runState;
-        _currentEnemyGroup.Clear();
         _mainSceneRootsHiddenDuringCombat.Clear();
         _isChangingRoom = false;
         CurrentRoom = null;

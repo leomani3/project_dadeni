@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Deckbuilder.Actions;
@@ -22,6 +22,7 @@ namespace Deckbuilder.Combat
         public Action<Entity> onActiveEntityChanged;
 
         [SerializeField] private ArenaGrid m_grid;
+        [SerializeField, Required] private Transform m_cameraFocusPoint;
         [SerializeField, Required] private TurnCursor m_turnCursorPrefab;
         [SerializeField] private LayerMask m_cellLayerMask = ~0;
         [SerializeField, Required] private CellHighlightStyle m_placementCellStyle;
@@ -60,7 +61,8 @@ namespace Deckbuilder.Combat
         private void Start()
         {
             SceneManager.SetActiveScene(gameObject.scene);
-            StartCombat(RunManager.Instance.Player, RunManager.Instance.CurrentEnemyGroup);
+            CameraManager.Instance.FocusOn(m_cameraFocusPoint);
+            StartCombat(GameFlow.Instance.Player, GameFlow.Instance.CombatEnemyPrefabs);
         }
 
         private void StartCombat(Entity _player, IReadOnlyList<Entity> _enemyPrefabs)
@@ -109,8 +111,27 @@ namespace Deckbuilder.Combat
             }
 
             ReleasePlacementHighlights();
+            UnbindPersistentListeners();
 
-            EntityManager.Instance.onEntityUnregistered -= Forget;
+            m_deck.EndCombat();
+
+            onCombatEnded?.Invoke();
+
+            GameFlow.Instance.EndCombat();
+        }
+
+        private void OnDestroy()
+        {
+            UnbindPersistentListeners();
+        }
+
+        private void UnbindPersistentListeners()
+        {
+            if (EntityManager.Instance != null)
+                EntityManager.Instance.onEntityUnregistered -= Forget;
+
+            if (m_combatCanvas == null)
+                return;
 
             m_combatCanvas.onEndTurnClicked -= EndPlayerTurn;
             m_combatCanvas.onEndCombatClicked -= EndCombat;
@@ -120,12 +141,7 @@ namespace Deckbuilder.Combat
             m_combatCanvas.SetPlacementModeActive(false);
             m_combatCanvas.Close();
 
-            m_deck.EndCombat();
             m_combatCanvas = null;
-
-            onCombatEnded?.Invoke();
-
-            RunManager.Instance.EndCombat();
         }
 
         public void EndPlayerTurn()

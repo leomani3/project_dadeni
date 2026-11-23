@@ -8,9 +8,10 @@ namespace Deckbuilder.Grid
 {
     public class ArenaGrid : MonoBehaviour, IGridTopology
     {
-        private const float MinimumCellGap = 0.001f;
-
         [SerializeField] private Transform m_cellsRoot;
+        [SerializeField, Required] private ArenaLayout m_layout;
+        [SerializeField, Required] private GridCell m_cellPrefab;
+        [SerializeField, Min(0.01f)] private float m_cellPrefabFootprint = 1f;
         [SerializeField, Required] private Material m_highlightMaterial;
 
         private readonly Dictionary<Vector2Int, GridCell> m_cellsByCoordinate = new();
@@ -37,14 +38,14 @@ namespace Deckbuilder.Grid
             m_cellsByCoordinate.Clear();
             m_cellsByType.Clear();
             m_cells.Clear();
-            CellsRoot.GetComponentsInChildren(true, m_cells);
 
-            CellSize = MeasureCellSpacing();
+            CellSize = m_layout.CellSize;
+
+            SpawnCellsFromLayout();
+            CellsRoot.GetComponentsInChildren(true, m_cells);
 
             foreach (GridCell _cell in m_cells)
             {
-                _cell.SetCoordinate(PositionToCoordinate(_cell.transform.position));
-
                 if (!m_cellsByCoordinate.TryAdd(_cell.Coordinate, _cell))
                     this.LogError($"Duplicate grid coordinate {_cell.Coordinate} found on {_cell.name}.");
 
@@ -66,45 +67,55 @@ namespace Deckbuilder.Grid
             ValidateGridContinuity();
         }
 
-        private float MeasureCellSpacing()
+        private void SpawnCellsFromLayout()
         {
-            List<float> _localX = new List<float>(m_cells.Count);
-            List<float> _localZ = new List<float>(m_cells.Count);
+            for (int _i = CellsRoot.childCount - 1; _i >= 0; _i--)
+                DestroyCellObject(CellsRoot.GetChild(_i));
 
-            foreach (GridCell _cell in m_cells)
+            float _cellScale = m_layout.CellSize / m_cellPrefabFootprint;
+
+            foreach (ArenaLayout.CellEntry _entry in m_layout.Cells)
             {
-                Vector3 _localPosition = CellsRoot.InverseTransformPoint(_cell.transform.position);
-                _localX.Add(_localPosition.x);
-                _localZ.Add(_localPosition.z);
+                GridCell _cell = InstantiateCell();
+                _cell.transform.SetParent(CellsRoot, false);
+                _cell.transform.localPosition = m_layout.CoordinateToLocalPosition(_entry.coordinate);
+                _cell.transform.localScale = Vector3.one * _cellScale;
+                _cell.name = $"Cell {_entry.coordinate.x},{_entry.coordinate.y}";
+                _cell.SetCoordinate(_entry.coordinate);
+                _cell.SetCellType(_entry.type);
             }
-
-            float _spacing = Mathf.Min(GetSmallestGap(_localX), GetSmallestGap(_localZ));
-
-            if (float.IsPositiveInfinity(_spacing))
-            {
-                this.LogError($"Could not measure a cell spacing from {m_cells.Count} cells, they all share the same position.");
-                return 1f;
-            }
-
-            return _spacing;
         }
 
-        private static float GetSmallestGap(List<float> _positions)
+        private GridCell InstantiateCell()
         {
-            _positions.Sort();
-
-            float _smallestGap = float.PositiveInfinity;
-
-            for (int _i = 1; _i < _positions.Count; _i++)
-            {
-                float _gap = _positions[_i] - _positions[_i - 1];
-
-                if (_gap > MinimumCellGap)
-                    _smallestGap = Mathf.Min(_smallestGap, _gap);
-            }
-
-            return _smallestGap;
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                return ((GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(m_cellPrefab.gameObject)).GetComponent<GridCell>();
+#endif
+            return Instantiate(m_cellPrefab);
         }
+
+        private static void DestroyCellObject(Transform _cell)
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                DestroyImmediate(_cell.gameObject);
+                return;
+            }
+#endif
+            _cell.SetParent(null, false);
+            Destroy(_cell.gameObject);
+        }
+
+#if UNITY_EDITOR
+        [Button]
+        private void RebuildFromLayout()
+        {
+            Build();
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
 
         private void ValidateGridContinuity()
         {

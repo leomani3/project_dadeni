@@ -1,21 +1,28 @@
 using MyBox;
 using Sirenix.OdinInspector;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class CameraManager : Singleton<CameraManager>
 {
     [SerializeField, Required] private Camera mainCam;
-    [SerializeField, Required] private Transform _focusAnchor;
+    [SerializeField, Required] private CinemachineBrain _brain;
 
     [Header("Focus Movement")]
     [SerializeField] private float _focusSmoothTime = 0.25f;
     [SerializeField] private float _maxFocusSpeed = 25f;
 
     private Transform _focusTarget;
-    private bool _hasFocus;
+    private Transform _drivenAnchor;
     private Vector3 _focusVelocity;
 
     public Camera MainCam => mainCam;
+
+    private void Reset()
+    {
+        mainCam = GetComponentInChildren<Camera>();
+        _brain = GetComponentInChildren<CinemachineBrain>();
+    }
 
     public void FocusOn(Transform _focusPoint)
     {
@@ -31,17 +38,33 @@ public class CameraManager : Singleton<CameraManager>
     {
         _focusTarget = _target;
         _focusVelocity = Vector3.zero;
-
-        if (_hasFocus) return;
-
-        _hasFocus = true;
-        _focusAnchor.position = _target.position;
     }
 
     private void LateUpdate()
     {
-        if (_focusTarget == null) return;
+        Transform _liveAnchor = GetLiveAnchor();
 
-        _focusAnchor.position = Vector3.SmoothDamp(_focusAnchor.position, _focusTarget.position, ref _focusVelocity, _focusSmoothTime, _maxFocusSpeed);
+        if (_liveAnchor == null || _focusTarget == null)
+        {
+            _drivenAnchor = _liveAnchor;
+            return;
+        }
+
+        if (_liveAnchor != _drivenAnchor)
+        {
+            _drivenAnchor = _liveAnchor;
+            _focusVelocity = Vector3.zero;
+            _liveAnchor.position = _focusTarget.position;
+            return;
+        }
+
+        _liveAnchor.position = Vector3.SmoothDamp(_liveAnchor.position, _focusTarget.position, ref _focusVelocity, _focusSmoothTime, _maxFocusSpeed);
+    }
+
+    private Transform GetLiveAnchor()
+    {
+        CinemachineVirtualCameraBase _liveCamera = _brain.ActiveVirtualCamera as CinemachineVirtualCameraBase;
+
+        return _liveCamera == null ? null : _liveCamera.Follow;
     }
 }

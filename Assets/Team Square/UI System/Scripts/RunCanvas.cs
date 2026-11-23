@@ -1,4 +1,4 @@
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class RunCanvas : CanvasHandler
@@ -28,7 +28,9 @@ public class RunCanvas : CanvasHandler
 
     private void ApplyGameFlowState(GameFlowState _state)
     {
-        if (_state == GameFlowState.Run)
+        _completeRoomButton.gameObject.SetActive(_state == GameFlowState.Run);
+
+        if (GameFlow.Instance.IsInGameplay)
             Open();
         else
             Close();

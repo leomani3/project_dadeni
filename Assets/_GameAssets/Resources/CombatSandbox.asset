@@ -9,16 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 570d8a819f4289e48a165100f05088b7, type: 3}
-  m_Name: CharacterWarrior
+  m_Script: {fileID: 11500000, guid: 3f5a1c7b9d2e4f08a16b5c3d7e92f401, type: 3}
+  m_Name: CombatSandbox
   m_EditorClassIdentifier: 
-  _id: character.warrior
-  _displayName: Warrior
-  _description: The starting character, built around block and raw damage.
-  _portrait: {fileID: 0}
-  _prefab: {fileID: 7403663881764562647, guid: d10b2a29585546449a00a0603d583c4f, type: 3}
-  _startingGold: 99
-  _startingDeck:
+  _bootStraightIntoCombat: 1
+  _character: {fileID: 11400000, guid: f7632b9646c47ea45a2c622ca17210a3, type: 2}
+  _seed: COMBAT
+  _deck:
   - card: {fileID: 11400000, guid: 260ec78a940b4f33875702f9f93e5138, type: 2}
     upgraded: 0
     copies: 4
@@ -55,4 +52,6 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: 51f822f87c6149b7862462125d70bd6a, type: 2}
     upgraded: 0
     copies: 1
-  _unlockedByDefault: 1
+  _enemies:
+  - prefab: {fileID: 845353323258429797, guid: 2c80ce9f5d49a5149818e3516ddc9071, type: 3}
+    count: 3

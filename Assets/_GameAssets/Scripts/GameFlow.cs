@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Deckbuilder.Cards;
+using Lean.Pool;
 using MyBox;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,6 +11,7 @@ using Utils;
 public class GameFlow : Singleton<GameFlow>
 {
     private const string HubSceneName = "MenuScene";
+    private const string CombatSceneName = "CombatScene";
 
     public Action<GameFlowState> onStateChanged;
     public Action<CharacterConfig> onSelectedCharacterChanged;
@@ -16,6 +20,12 @@ public class GameFlow : Singleton<GameFlow>
     public CharacterConfig SelectedCharacter { get; private set; }
     public Entity Player { get; private set; }
     public bool IsPlayerControlEnabled { get; private set; }
+
+    private readonly List<Entity> _combatEnemyPrefabs = new List<Entity>();
+
+    public IReadOnlyList<Entity> CombatEnemyPrefabs => _combatEnemyPrefabs;
+    public bool IsInGameplay => State == GameFlowState.Run || State == GameFlowState.SandboxCombat;
+    public bool IsInSandboxCombat => State == GameFlowState.SandboxCombat;
 
     private void Start()
     {
@@ -30,6 +40,12 @@ public class GameFlow : Singleton<GameFlow>
 
     public async void Boot()
     {
+        if (CombatSandbox.Instance.BootStraightIntoCombat)
+        {
+            StartSandboxCombat();
+            return;
+        }
+
         if (SaveSystem.HasRunSave)
         {
             RunState _runState = SaveSystem.LoadRun();
@@ -56,6 +72,53 @@ public class GameFlow : Singleton<GameFlow>
         SpawnPlayer();
 
         HubManager.Instance.EnterHub(_showMenu);
+    }
+
+    public void StartSandboxCombat()
+    {
+        CombatSandbox _sandbox = CombatSandbox.Instance;
+
+        SetState(GameFlowState.SandboxCombat);
+
+        RunRandom.Initialize(_sandbox.Seed);
+        SelectCharacter(_sandbox.Character);
+
+        SpawnPlayer();
+        ApplySandboxLoadoutToPlayer(_sandbox);
+        SetCombatEnemies(_sandbox.BuildEnemyPrefabs());
+
+        this.Log($"Starting sandbox combat on seed {RunRandom.SeedString} - {_sandbox.ToDebugString()}");
+
+        SceneManager.LoadSceneAsync(CombatSceneName);
+    }
+
+    public void RestartSandboxCombat()
+    {
+        FadeManager.Instance.FadeIn(() =>
+        {
+            LeanPool.DespawnAll();
+            DespawnPlayer();
+            StartSandboxCombat();
+        });
+    }
+
+    public void SetCombatEnemies(IReadOnlyList<Entity> _enemyPrefabs)
+    {
+        _combatEnemyPrefabs.Clear();
+        _combatEnemyPrefabs.AddRange(_enemyPrefabs);
+    }
+
+    public void EndCombat()
+    {
+        _combatEnemyPrefabs.Clear();
+
+        if (IsInSandboxCombat)
+        {
+            RestartSandboxCombat();
+            return;
+        }
+
+        RunManager.Instance.ReturnFromCombat();
     }
 
     public void SelectCharacter(CharacterConfig _character)
@@ -119,6 +182,15 @@ public class GameFlow : Singleton<GameFlow>
 
         Destroy(Player.gameObject);
         Player = null;
+    }
+
+    private void ApplySandboxLoadoutToPlayer(CombatSandbox _sandbox)
+    {
+        Player.TryGetModule(out PlayerDeckModule _deckModule);
+        _deckModule.Load(_sandbox.BuildDeck());
+
+        Player.TryGetModule(out EntityHealthModule _healthModule);
+        _healthModule.RefillToMaxHealth();
     }
 
     private CharacterConfig ResolveSelectedCharacter()

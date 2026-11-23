@@ -8,24 +8,22 @@ namespace Deckbuilder.Combat
     {
         private static readonly Vector2[] CornerDirections =
         {
+            new(-1f, -1f),
             new(-1f, 1f),
             new(1f, 1f),
-            new(1f, -1f),
-            new(-1f, -1f)
+            new(1f, -1f)
         };
 
-        [SerializeField, Required] private SpriteRenderer[] m_corners = new SpriteRenderer[4];
-        [SerializeField] private Color m_color = new(1f, 0.85f, 0.3f, 1f);
-        [SerializeField, Min(0f)] private float m_sizeRatio = 0.9f;
+        [SerializeField, Required] private Transform[] m_corners = new Transform[4];
+        [SerializeField, Min(0f)] private float m_sizeRatio = 0.95f;
         [SerializeField, Min(0f)] private float m_cornerLengthRatio = 0.35f;
-        [SerializeField] private float m_heightOffset = 0.02f;
-        [SerializeField, Min(0f)] private float m_followSpeed = 12f;
+        [SerializeField, Min(0f)] private float m_heightOffset = 0.02f;
         [SerializeField, Min(0f)] private float m_appearScale = 1.7f;
         [SerializeField, Min(0f)] private float m_appearDuration = 0.3f;
         [SerializeField] private Ease m_appearEase = Ease.OutBack;
         [SerializeField, Min(0f)] private float m_breatheSpacingRatio = 0.1f;
         [SerializeField, Min(0f)] private float m_breatheScaleRatio = 0.12f;
-        [SerializeField, Min(0f)] private float m_breatheDuration = 1.1f;
+        [SerializeField, Min(0f)] private float m_breatheDuration = 1.5f;
         [SerializeField] private Ease m_breatheEase = Ease.InOutSine;
         [SerializeField, Min(0f)] private float m_bobAmplitude = 0.03f;
 
@@ -36,13 +34,9 @@ namespace Deckbuilder.Combat
         private float m_breatheRatio;
         private Tween m_appearTween;
         private Tween m_breatheTween;
-        private Vector3 m_followedPosition;
 
         private void Awake()
         {
-            foreach (SpriteRenderer _corner in m_corners)
-                _corner.color = m_color;
-
             SetVisible(false);
             LayoutCorners();
             PlayBreatheTween();
@@ -67,7 +61,6 @@ namespace Deckbuilder.Combat
 
         public void SetTarget(Entity _entity)
         {
-            bool _wasHidden = m_target == null;
             m_target = _entity != null ? _entity.transform : null;
 
             if (m_target == null)
@@ -76,10 +69,7 @@ namespace Deckbuilder.Combat
                 return;
             }
 
-            m_followedPosition = GetFollowedPosition();
-
-            if (_wasHidden)
-                transform.position = m_followedPosition;
+            transform.position = GetFollowedPosition();
 
             SetVisible(true);
             PlayAppearTween();
@@ -99,8 +89,7 @@ namespace Deckbuilder.Combat
             if (m_target == null)
                 return;
 
-            m_followedPosition = Vector3.Lerp(m_followedPosition, GetFollowedPosition(), 1f - Mathf.Exp(-m_followSpeed * Time.deltaTime));
-            transform.position = m_followedPosition + Vector3.up * (GetBreatheSign() * m_bobAmplitude);
+            transform.position = GetFollowedPosition() + Vector3.up * (m_breatheRatio * m_bobAmplitude);
         }
 
         private Vector3 GetFollowedPosition()
@@ -115,8 +104,8 @@ namespace Deckbuilder.Combat
 
         private void SetVisible(bool _visible)
         {
-            foreach (SpriteRenderer _corner in m_corners)
-                _corner.enabled = _visible;
+            foreach (Transform _corner in m_corners)
+                _corner.gameObject.SetActive(_visible);
         }
 
         private void PlayBreatheTween()
@@ -155,11 +144,12 @@ namespace Deckbuilder.Combat
 
             for (int _i = 0; _i < m_corners.Length; _i++)
             {
-                SpriteRenderer _corner = m_corners[_i];
+                Transform _corner = m_corners[_i];
                 Vector2 _direction = CornerDirections[_i];
 
-                _corner.transform.localPosition = new Vector3(_direction.x * _half, _direction.y * _half, 0f);
-                _corner.transform.localScale = Vector3.one * (_length / _corner.sprite.bounds.size.x);
+                _corner.localPosition = new Vector3(_direction.x * _half, 0f, _direction.y * _half);
+                _corner.localRotation = Quaternion.Euler(0f, _i * 90f, 0f);
+                _corner.localScale = Vector3.one * _length;
             }
         }
     }

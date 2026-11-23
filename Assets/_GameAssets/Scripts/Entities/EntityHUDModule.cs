@@ -19,7 +19,7 @@ public class EntityHUDModule : EntityModule
     {
         base.OnAllModuleInitialized();
 
-        if (GameFlow.Instance.State != GameFlowState.Run)
+        if (!GameFlow.Instance.IsInGameplay)
             return;
 
         Owner.TryGetModule(out _healthModule);
