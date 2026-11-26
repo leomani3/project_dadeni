@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Deckbuilder.Combat;
@@ -7,6 +8,8 @@ using UnityEngine;
 
 public class EntityCombatMoverModule : EntityModule
 {
+    public Action<int, int> OnMovementPointsChanged;
+
     [SerializeField] private float m_moveSpeed = 5f;
 
     public CombatManager CombatManager { get; private set; }
@@ -15,9 +18,11 @@ public class EntityCombatMoverModule : EntityModule
     public GridCell DestinationCell { get; private set; }
     public bool IsMoving { get; private set; }
     public int RemainingMovementPoints { get; private set; }
+    public int MaxMovementPoints { get; private set; }
 
     public GridCell EffectiveCell => IsMoving && DestinationCell != null ? DestinationCell : CurrentCell;
 
+    private readonly List<GridCell> m_path = new();
     private EntityAnimationModule m_animationModule;
     private EntityStatModule m_statModule;
     private Coroutine m_moveRoutine;
@@ -35,7 +40,8 @@ public class EntityCombatMoverModule : EntityModule
     {
         base.OnTurnStart();
 
-        RemainingMovementPoints = Mathf.RoundToInt(m_statModule.GetValue(StatType.MovementPoints));
+        int _max = Mathf.RoundToInt(m_statModule.GetValue(StatType.MovementPoints));
+        SetMovementPoints(_max, _max);
     }
 
     public override void OnCombatExit()
@@ -60,8 +66,18 @@ public class EntityCombatMoverModule : EntityModule
         Vector3 _direction = _position - transform.position;
         _direction.y = 0f;
 
-        if (_direction.sqrMagnitude > 0.0001f)
-            transform.rotation = Quaternion.LookRotation(_direction);
+        if (_direction.sqrMagnitude <= 0.0001f)
+            return;
+
+        transform.rotation = Quaternion.LookRotation(ToCardinalDirection(_direction));
+    }
+
+    private static Vector3 ToCardinalDirection(Vector3 _direction)
+    {
+        if (Mathf.Abs(_direction.x) >= Mathf.Abs(_direction.z))
+            return _direction.x >= 0f ? Vector3.right : Vector3.left;
+
+        return _direction.z >= 0f ? Vector3.forward : Vector3.back;
     }
 
     public bool MoveTo(GridCell _destination, bool _ignoreOccupants = false, bool _randomizePath = false)
@@ -69,18 +85,28 @@ public class EntityCombatMoverModule : EntityModule
         if (IsMoving || _destination == null || Grid == null || CurrentCell == null)
             return false;
 
-        List<GridCell> _path = Grid.FindPath(CurrentCell, _destination, _ignoreOccupants, _randomizePath);
-        if (_path == null || _path.Count < 2)
+        return MoveAlong(Grid.FindPath(CurrentCell, _destination, _ignoreOccupants, _randomizePath));
+    }
+
+    public bool MoveAlong(IReadOnlyList<GridCell> _path)
+    {
+        if (IsMoving || Grid == null || CurrentCell == null)
+            return false;
+
+        if (_path == null || _path.Count < 2 || _path[0] != CurrentCell)
             return false;
 
         int _movementCost = _path.Count - 1;
         if (_movementCost > RemainingMovementPoints)
             return false;
 
-        RemainingMovementPoints -= _movementCost;
-        DestinationCell = _destination;
+        m_path.Clear();
+        m_path.AddRange(_path);
+
+        SetMovementPoints(RemainingMovementPoints - _movementCost, MaxMovementPoints);
+        DestinationCell = m_path[^1];
         m_cancelMoveRequested = false;
-        m_moveRoutine = StartCoroutine(FollowPath(_path));
+        m_moveRoutine = StartCoroutine(FollowPath());
         return true;
     }
 
@@ -93,6 +119,8 @@ public class EntityCombatMoverModule : EntityModule
     public override void Cleanup()
     {
         base.Cleanup();
+
+        OnMovementPointsChanged = null;
 
         if (CurrentCell != null && CurrentCell.Occupant == Owner)
             CurrentCell.ClearOccupant();
@@ -113,23 +141,30 @@ public class EntityCombatMoverModule : EntityModule
         DestinationCell = null;
         IsMoving = false;
         m_cancelMoveRequested = false;
-        RemainingMovementPoints = 0;
+        SetMovementPoints(0, 0);
     }
 
-    private IEnumerator FollowPath(List<GridCell> _path)
+    private void SetMovementPoints(int _remaining, int _max)
+    {
+        RemainingMovementPoints = _remaining;
+        MaxMovementPoints = _max;
+        OnMovementPointsChanged?.Invoke(RemainingMovementPoints, MaxMovementPoints);
+    }
+
+    private IEnumerator FollowPath()
     {
         IsMoving = true;
         m_animationModule.SetLocomotionSpeed(1f);
 
-        for (int _i = 1; _i < _path.Count; _i++)
+        for (int _i = 1; _i < m_path.Count; _i++)
         {
-            GridCell _targetCell = _path[_i];
+            GridCell _targetCell = m_path[_i];
             yield return MoveToCell(_targetCell);
             Grid.MoveEntity(Owner, _targetCell);
 
             if (m_cancelMoveRequested)
             {
-                RemainingMovementPoints += _path.Count - 1 - _i;
+                SetMovementPoints(RemainingMovementPoints + m_path.Count - 1 - _i, MaxMovementPoints);
                 break;
             }
         }
