@@ -5,6 +5,7 @@ using Deckbuilder.Actions;
 using Deckbuilder.Cards;
 using Deckbuilder.Grid;
 using Lean.Pool;
+using Pinpin;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,6 +28,7 @@ namespace Deckbuilder.Combat
         [SerializeField] private LayerMask m_cellLayerMask = ~0;
         [SerializeField, Required] private CellHighlightStyle m_placementCellStyle;
         [SerializeField, Required] private CellHighlightStyle m_placementHoverStyle;
+        [SerializeField, Required] private CellHighlightStyle m_enemySpawnCellStyle;
         [SerializeField, Min(0f)] private float m_combatStartDelay = 0.75f;
         [SerializeField, Min(0f)] private float m_turnTransitionDelay = 0.35f;
         [SerializeField, Min(0f)] private float m_enemyTurnDuration = 0.5f;
@@ -52,10 +54,24 @@ namespace Deckbuilder.Combat
         private Coroutine m_combatStartRoutine;
         private CellHighlightSource m_placementCellsHighlight;
         private CellHighlightSource m_placementHoverHighlight;
+        private CellHighlightSource m_enemySpawnCellsHighlight;
+        private EntityActionPointModule m_playerActionPoints;
+        private EntityCombatMoverModule m_playerCombatMover;
 
         private void Reset()
         {
             m_grid = GetComponent<ArenaGrid>();
+        }
+
+        private void OnEnable()
+        {
+            CursorManager.Instance.SetLockedToNormal(true);
+        }
+
+        private void OnDisable()
+        {
+            if (CursorManager.Instance != null)
+                CursorManager.Instance.SetLockedToNormal(false);
         }
 
         private void Start()
@@ -85,6 +101,7 @@ namespace Deckbuilder.Combat
 
             m_player = _player;
 
+            BindPlayerResources();
             StartDeck();
             StartPlacement();
         }
@@ -130,6 +147,8 @@ namespace Deckbuilder.Combat
             if (EntityManager.Instance != null)
                 EntityManager.Instance.onEntityUnregistered -= Forget;
 
+            UnbindPlayerResources();
+
             if (m_combatCanvas == null)
                 return;
 
@@ -157,10 +176,22 @@ namespace Deckbuilder.Combat
 
         public Entity SpawnEntity(Entity _entityPrefab, GridCell _cell)
         {
+            EnsurePoolExists(_entityPrefab.gameObject);
+
             Entity _entity = LeanPool.Spawn(_entityPrefab, _cell.transform.position, _cell.transform.rotation);
             PlaceOnCell(_entity, _cell);
 
             return _entity;
+        }
+
+        private static void EnsurePoolExists(GameObject _prefab)
+        {
+            ACommonPool _pool = null;
+
+            if (ACommonPool.TryFindPoolByPrefab(_prefab, ref _pool))
+                return;
+
+            new GameObject($"LeanPool ({_prefab.name})").AddComponent<LeanGameObjectPool>().Prefab = _prefab;
         }
 
         private void StartPlacement()
@@ -176,13 +207,16 @@ namespace Deckbuilder.Combat
 
             m_placementCellsHighlight = m_grid.CreateHighlightSource(m_placementCellStyle);
             m_placementHoverHighlight = m_grid.CreateHighlightSource(m_placementHoverStyle);
+            m_enemySpawnCellsHighlight = m_grid.CreateHighlightSource(m_enemySpawnCellStyle);
             m_placementCellsHighlight.Set(m_placementCells);
+            m_enemySpawnCellsHighlight.Set(m_grid.GetEnemySpawnCells());
 
             SetPhase(CombatPhase.Placement);
             m_combatCanvas.SetPlacementModeActive(true);
             m_combatCanvas.ShowTurnBanner(CombatPhase.Placement);
 
             PlaceOnCell(m_player, m_placementCells[0]);
+            FaceEnemiesTowardsPlayer();
             SetActiveEntity(m_player);
         }
 
@@ -213,6 +247,8 @@ namespace Deckbuilder.Combat
 
             if (!_cell.TrySetOccupant(m_player))
                 this.LogWarning($"Cell {_cell.name} is already occupied by {_cell.Occupant.name}.");
+
+            FaceEnemiesTowardsPlayer();
         }
 
         private void LockPlacement()
@@ -289,6 +325,7 @@ namespace Deckbuilder.Combat
         private IEnumerator PlayEnemyTurn(Entity _enemy)
         {
             SetActiveEntity(_enemy);
+            FaceTowardsPlayer(_enemy);
             _enemy.OnTurnStart();
 
             if (m_enemies.Contains(_enemy))
@@ -323,9 +360,45 @@ namespace Deckbuilder.Combat
 
             m_placementCellsHighlight.Release();
             m_placementHoverHighlight.Release();
+            m_enemySpawnCellsHighlight.Release();
 
             m_placementCellsHighlight = null;
             m_placementHoverHighlight = null;
+            m_enemySpawnCellsHighlight = null;
+        }
+
+        private void BindPlayerResources()
+        {
+            m_player.TryGetModule(out m_playerActionPoints);
+            m_player.TryGetModule(out m_playerCombatMover);
+
+            m_playerActionPoints.OnActionPointsChanged += HandleActionPointsChanged;
+            m_playerCombatMover.OnMovementPointsChanged += HandleMovementPointsChanged;
+
+            HandleActionPointsChanged(m_playerActionPoints.RemainingActionPoints, m_playerActionPoints.MaxActionPoints);
+            HandleMovementPointsChanged(m_playerCombatMover.RemainingMovementPoints, m_playerCombatMover.MaxMovementPoints);
+        }
+
+        private void UnbindPlayerResources()
+        {
+            if (m_playerActionPoints != null)
+                m_playerActionPoints.OnActionPointsChanged -= HandleActionPointsChanged;
+
+            if (m_playerCombatMover != null)
+                m_playerCombatMover.OnMovementPointsChanged -= HandleMovementPointsChanged;
+
+            m_playerActionPoints = null;
+            m_playerCombatMover = null;
+        }
+
+        private void HandleActionPointsChanged(int _remaining, int _max)
+        {
+            m_combatCanvas.SetActionPoints(_remaining, _max);
+        }
+
+        private void HandleMovementPointsChanged(int _remaining, int _max)
+        {
+            m_combatCanvas.SetMovementPoints(_remaining, _max);
         }
 
         private void StartDeck()
@@ -363,6 +436,18 @@ namespace Deckbuilder.Combat
 
             if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
                 _combatMover.SetCombatManager(this);
+        }
+
+        private void FaceEnemiesTowardsPlayer()
+        {
+            foreach (Entity _enemy in m_enemies)
+                FaceTowardsPlayer(_enemy);
+        }
+
+        private void FaceTowardsPlayer(Entity _entity)
+        {
+            if (_entity.TryGetModule(out EntityCombatMoverModule _combatMover))
+                _combatMover.FaceTowards(m_player.transform.position);
         }
 
         private void ReleaseCell(Entity _entity)

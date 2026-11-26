@@ -13,5 +13,6 @@ namespace Stats
         Size = 13,
         Repetition = 14,
         MovementPoints = 15,
+        ActionPoints = 16,
     }
 }

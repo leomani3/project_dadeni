@@ -12,11 +12,13 @@ namespace Deckbuilder.Player
     public class PlayerActionController : EntityModule
     {
         [SerializeField] private LayerMask m_cellLayerMask = ~0;
+        [SerializeField] private bool m_requireClickToEnterMoveMode;
         [SerializeField, Required] private CellHighlightStyle m_movementRangeStyle;
         [SerializeField, Required] private CellHighlightStyle m_movementPathStyle;
         [SerializeField, Required] private CellHighlightStyle m_targetZoneStyle;
         [SerializeField, Required] private CellHighlightStyle m_targetZoneBlockedStyle;
         [SerializeField, Required] private CellHighlightStyle m_effectZoneStyle;
+        [SerializeField, Required] private CellHighlightStyle m_targetCellStyle;
 
         private GridCell m_hoveredCell;
         private bool m_isMoveModeActive;
@@ -28,11 +30,15 @@ namespace Deckbuilder.Player
         private CellHighlightSource m_targetZoneHighlight;
         private CellHighlightSource m_targetZoneBlockedHighlight;
         private CellHighlightSource m_effectZoneHighlight;
+        private CellHighlightSource m_targetCellHighlight;
 
+        private readonly GridPathSteering m_pathSteering = new();
         private readonly List<GridCell> m_reachableCells = new();
+        private readonly List<GridCell> m_pathCells = new();
         private readonly List<GridCell> m_zoneCells = new();
         private readonly List<GridCell> m_targetCells = new();
         private readonly List<GridCell> m_blockedTargetCells = new();
+        private readonly List<GridCell> m_hoveredCells = new();
 
         protected override void OnInitialize()
         {
@@ -56,7 +62,7 @@ namespace Deckbuilder.Player
             base.OnTurnEnd();
 
             enabled = false;
-            m_isMoveModeActive = false;
+            SetMoveModeActive(false);
 
             ClearMoveHighlights();
             ClearCardHighlights();
@@ -67,7 +73,7 @@ namespace Deckbuilder.Player
             base.OnCombatExit();
 
             enabled = false;
-            m_isMoveModeActive = false;
+            SetMoveModeActive(false);
 
             ReleaseHighlightSources();
         }
@@ -90,6 +96,7 @@ namespace Deckbuilder.Player
             m_targetZoneHighlight = m_grid.CreateHighlightSource(m_targetZoneStyle);
             m_targetZoneBlockedHighlight = m_grid.CreateHighlightSource(m_targetZoneBlockedStyle);
             m_effectZoneHighlight = m_grid.CreateHighlightSource(m_effectZoneStyle);
+            m_targetCellHighlight = m_grid.CreateHighlightSource(m_targetCellStyle);
         }
 
         private void ReleaseHighlightSources()
@@ -102,12 +109,14 @@ namespace Deckbuilder.Player
             m_targetZoneHighlight.Release();
             m_targetZoneBlockedHighlight.Release();
             m_effectZoneHighlight.Release();
+            m_targetCellHighlight.Release();
 
             m_movementRangeHighlight = null;
             m_movementPathHighlight = null;
             m_targetZoneHighlight = null;
             m_targetZoneBlockedHighlight = null;
             m_effectZoneHighlight = null;
+            m_targetCellHighlight = null;
         }
 
         private void Update()
@@ -125,7 +134,7 @@ namespace Deckbuilder.Player
 
             if (_entityCell == null)
             {
-                m_isMoveModeActive = false;
+                SetMoveModeActive(false);
                 ClearMoveHighlights();
                 ClearCardHighlights();
                 return;
@@ -133,12 +142,12 @@ namespace Deckbuilder.Player
 
             if (_deckView.SelectedCard != null)
             {
-                m_isMoveModeActive = false;
+                SetMoveModeActive(false);
                 UpdateCardTargeting(_deckView, _deckView.SelectedCard, _entityCell);
             }
             else if (_deckView.FocusedCard != null)
             {
-                m_isMoveModeActive = false;
+                SetMoveModeActive(false);
                 UpdateCardPreview(_deckView.FocusedCard, _entityCell);
             }
             else
@@ -151,14 +160,21 @@ namespace Deckbuilder.Player
         {
             ClearCardHighlights();
 
-            bool _isHoveringCharacter = m_hoveredCell == _entityCell;
             bool _leftPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
 
+            if (!m_requireClickToEnterMoveMode)
+            {
+                UpdateMovement(_entityCell, _leftPressed, true);
+                return;
+            }
+
+            bool _isHoveringCharacter = m_hoveredCell == _entityCell;
+
             if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
-                m_isMoveModeActive = false;
+                SetMoveModeActive(false);
 
             if (_isHoveringCharacter && _leftPressed)
-                m_isMoveModeActive = !m_isMoveModeActive;
+                SetMoveModeActive(!m_isMoveModeActive);
 
             if (!m_isMoveModeActive && !_isHoveringCharacter)
             {
@@ -166,22 +182,49 @@ namespace Deckbuilder.Player
                 return;
             }
 
-            m_grid.GetReachableCells(_entityCell, GetRemainingMovementPoints(), m_reachableCells);
+            UpdateMovement(_entityCell, _leftPressed, m_isMoveModeActive);
+        }
+
+        private void UpdateMovement(GridCell _entityCell, bool _leftPressed, bool _canConfirmMove)
+        {
+            int _movementPoints = GetRemainingMovementPoints();
+            m_grid.GetReachableCells(_entityCell, _movementPoints, m_reachableCells);
             m_movementRangeHighlight.Set(m_reachableCells);
 
-            bool _canMoveToHoveredCell = m_isMoveModeActive && m_hoveredCell != null && m_reachableCells.Contains(m_hoveredCell);
-            List<GridCell> _path = _canMoveToHoveredCell ? m_grid.FindPath(_entityCell, m_hoveredCell) : null;
+            bool _canMoveToHoveredCell = _canConfirmMove
+                && m_hoveredCell != null
+                && m_reachableCells.Contains(m_hoveredCell)
+                && m_pathSteering.TrySteerTo(m_grid, _entityCell.Coordinate, m_hoveredCell.Coordinate, _movementPoints);
 
-            if (_path != null)
-                m_movementPathHighlight.Set(_path);
+            if (_canMoveToHoveredCell)
+            {
+                CollectSteeredPathCells();
+                m_movementPathHighlight.Set(m_pathCells);
+            }
             else
+            {
                 m_movementPathHighlight.Clear();
+            }
 
             if (_canMoveToHoveredCell && _leftPressed)
             {
-                EnqueueMove(m_hoveredCell);
-                m_isMoveModeActive = false;
+                EnqueueMove();
+                SetMoveModeActive(false);
             }
+        }
+
+        private void SetMoveModeActive(bool _isActive)
+        {
+            m_isMoveModeActive = _isActive;
+            m_pathSteering.Clear();
+        }
+
+        private void CollectSteeredPathCells()
+        {
+            m_pathCells.Clear();
+
+            foreach (Vector2Int _coordinate in m_pathSteering.Path)
+                m_pathCells.Add(m_grid.GetCell(_coordinate));
         }
 
         private void UpdateCardPreview(CardInstance _card, GridCell _entityCell)
@@ -189,6 +232,7 @@ namespace Deckbuilder.Player
             ClearMoveHighlights();
             ShowLaunchZone(_card, _entityCell);
             m_effectZoneHighlight.Clear();
+            m_targetCellHighlight.Clear();
         }
 
         private void UpdateCardTargeting(CombatDeckView _deckView, CardInstance _card, GridCell _entityCell)
@@ -196,7 +240,9 @@ namespace Deckbuilder.Player
             ClearMoveHighlights();
             ShowLaunchZone(_card, _entityCell);
 
-            bool _canTargetHoveredCell = m_hoveredCell != null && CardExecutor.CanTarget(m_combatManager, _card, Owner, m_hoveredCell);
+            bool _canTargetHoveredCell = m_hoveredCell != null
+                && CanAfford(_card)
+                && CardExecutor.CanTarget(m_combatManager, _card, Owner, m_hoveredCell);
             _deckView.SetArrowOnValidTarget(_canTargetHoveredCell);
 
             if (_canTargetHoveredCell)
@@ -204,10 +250,15 @@ namespace Deckbuilder.Player
                 ZoneDefinition _effectZone = _card.EffectZone;
                 m_grid.GetCellsInZone(m_hoveredCell.Coordinate, _effectZone.Shape, _effectZone.MaxRange, _effectZone.MinRange, m_zoneCells);
                 m_effectZoneHighlight.Set(m_zoneCells);
+
+                m_hoveredCells.Clear();
+                m_hoveredCells.Add(m_hoveredCell);
+                m_targetCellHighlight.Set(m_hoveredCells);
             }
             else
             {
                 m_effectZoneHighlight.Clear();
+                m_targetCellHighlight.Clear();
             }
 
             if (Mouse.current == null)
@@ -249,18 +300,29 @@ namespace Deckbuilder.Player
             m_targetZoneBlockedHighlight.Set(m_blockedTargetCells);
         }
 
-        private void EnqueueMove(GridCell _destination)
+        private void EnqueueMove()
         {
             Owner.TryGetModule(out EntityActionQueueModule _queue);
-            _queue.Enqueue(new MoveAction(Owner, _destination));
+            _queue.Enqueue(new MoveAction(Owner, m_pathCells));
         }
 
         private void PlayCard(CardInstance _card, GridCell _targetCell)
         {
+            Owner.TryGetModule(out EntityActionPointModule _actionPoints);
+
+            if (!_actionPoints.TrySpend(_card.Cost))
+                return;
+
             Owner.TryGetModule(out EntityActionQueueModule _queue);
 
             m_combatManager.Deck.Play(_card);
             _queue.Enqueue(new PlayCardAction(m_combatManager, _card, Owner, _targetCell));
+        }
+
+        private bool CanAfford(CardInstance _card)
+        {
+            Owner.TryGetModule(out EntityActionPointModule _actionPoints);
+            return _actionPoints.CanAfford(_card.Cost);
         }
 
         private int GetRemainingMovementPoints()
@@ -280,6 +342,7 @@ namespace Deckbuilder.Player
             m_targetZoneHighlight.Clear();
             m_targetZoneBlockedHighlight.Clear();
             m_effectZoneHighlight.Clear();
+            m_targetCellHighlight.Clear();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using Deckbuilder.Combat;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine;
 
 public class CombatCanvas : CanvasHandler
@@ -14,6 +15,8 @@ public class CombatCanvas : CanvasHandler
     [SerializeField, Required] private CustomButton _lockPlacementButton;
     [SerializeField, Required] private TurnBanner _turnBanner;
     [SerializeField, Required] private CombatDeckView _deckView;
+    [SerializeField, Required] private TMP_Text _actionPointsLabel;
+    [SerializeField, Required] private TMP_Text _movementPointsLabel;
 
     public CombatDeckView DeckView => _deckView;
 
@@ -28,6 +31,16 @@ public class CombatCanvas : CanvasHandler
     public void SetEndTurnButtonInteractable(bool interactable)
     {
         _endTurnButton.SetInteractible(interactable);
+    }
+
+    public void SetActionPoints(int remaining, int max)
+    {
+        _actionPointsLabel.text = $"AP {remaining}/{max}";
+    }
+
+    public void SetMovementPoints(int remaining, int max)
+    {
+        _movementPointsLabel.text = $"MP {remaining}/{max}";
     }
 
     public void SetPlacementModeActive(bool active)
