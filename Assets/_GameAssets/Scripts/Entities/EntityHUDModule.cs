@@ -8,8 +8,6 @@ public class EntityHUDModule : EntityModule
 {
     [SerializeField] private EntityHUD _hudPrefab;
     [SerializeField] private Transform _hudAnchor;
-    [SerializeField] private string _displayName;
-    [SerializeField, Min(1)] private int _level = 1;
 
     private EntityHealthModule _healthModule;
     private StatusEffectModule _statusEffectModule;
@@ -67,7 +65,7 @@ public class EntityHUDModule : EntityModule
     {
         Transform canvasTransform = UIManager.Instance.GetCanvas<RunCanvas>().transform;
         _hud = LeanPool.Spawn(_hudPrefab, canvasTransform);
-        _hud.Setup(_hudAnchor, _displayName, _level, _healthModule.MaxHealth, _healthModule.MaxHealth, _healthModule.Block);
+        _hud.Setup(_hudAnchor, _healthModule.MaxHealth, _healthModule.MaxHealth, _healthModule.Block);
     }
 
     private void DespawnHUD()

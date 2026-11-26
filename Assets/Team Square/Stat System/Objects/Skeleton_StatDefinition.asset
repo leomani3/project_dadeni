@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 194d038a401a21a498957795bca395d6, type: 3}
-  m_Name: Enemy_StatDefinition
+  m_Name: Skeleton_StatDefinition
   m_EditorClassIdentifier: Assembly-CSharp::Stats.EntityStatDefinition
   entityType: 2
   baseValues:
     keys: 01000000000000000f000000
     values:
     - 5
-    - 50
+    - 20
     - 3

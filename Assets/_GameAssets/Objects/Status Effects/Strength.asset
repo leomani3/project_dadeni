@@ -15,7 +15,7 @@ MonoBehaviour:
   m_id: status.strength
   m_type: 4
   m_displayName: Strength
-  m_icon: {fileID: 21300000, guid: a1928bdbaca3470f9bcbf710e2811de9, type: 3}
+  m_icon: {fileID: 21300000, guid: 5686a8f73fcde9f4fa549f4a794b86f2, type: 3}
   m_description: Increases damage dealt by attacks
   m_decayTiming: 0
   m_isDebuff: 0

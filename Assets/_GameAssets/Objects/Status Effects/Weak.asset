@@ -15,7 +15,7 @@ MonoBehaviour:
   m_id: status.weak
   m_type: 1
   m_displayName: Weak
-  m_icon: {fileID: 21300000, guid: a269f05d83244874bc4ddda8fc1dcba4, type: 3}
+  m_icon: {fileID: 21300000, guid: 41a668744449bb446a4f75486993e9c1, type: 3}
   m_description: Deal less damage
   m_decayTiming: 2
   m_isDebuff: 1

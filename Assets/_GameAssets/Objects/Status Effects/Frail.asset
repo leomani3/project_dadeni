@@ -15,7 +15,7 @@ MonoBehaviour:
   m_id: status.frail
   m_type: 2
   m_displayName: Frail
-  m_icon: {fileID: 21300000, guid: b35e070329284c5abdaedf439508d090, type: 3}
+  m_icon: {fileID: 21300000, guid: 6cc4480a2b50dc046ad7dff06810e8a4, type: 3}
   m_description: Reduces block gained
   m_decayTiming: 2
   m_isDebuff: 1

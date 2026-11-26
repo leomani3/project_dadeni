@@ -11,14 +11,29 @@ public class CursorManager : Singleton<CursorManager>
     [SerializeField] private Vector2 m_handHotspot = new(19f, 4f);
 
     private CursorType? m_appliedType;
+    private bool m_isLockedToNormal;
 
     private void Start()
     {
         ApplyCursor(CursorType.Normal);
     }
 
+    public void SetLockedToNormal(bool _locked)
+    {
+        if (m_isLockedToNormal == _locked)
+            return;
+
+        m_isLockedToNormal = _locked;
+
+        if (_locked)
+            ApplyCursor(CursorType.Normal);
+    }
+
     public void ApplyCursor(CursorType _type)
     {
+        if (m_isLockedToNormal)
+            _type = CursorType.Normal;
+
         if (m_appliedType == _type)
             return;
 

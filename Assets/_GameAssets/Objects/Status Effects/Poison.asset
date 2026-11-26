@@ -15,7 +15,7 @@ MonoBehaviour:
   m_id: status.poison
   m_type: 3
   m_displayName: Poison
-  m_icon: {fileID: 21300000, guid: 35304d6277e04be89e05ebdf1e774ca7, type: 3}
+  m_icon: {fileID: 21300000, guid: f6a53643dca46274e9544d6e57aae8a1, type: 3}
   m_description: Deals damage at the start of each turn, then decreases by 1
   m_decayTiming: 1
   m_isDebuff: 1

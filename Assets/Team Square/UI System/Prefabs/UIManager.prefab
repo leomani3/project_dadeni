@@ -128,8 +128,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0df831505e237941b1183f973f96f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_canvases:
-    values: []
   m_defaultCanvas: {fileID: 7201586163407031289}
 --- !u!1001 &568144410946699877
 PrefabInstance:

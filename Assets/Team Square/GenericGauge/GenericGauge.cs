@@ -4,6 +4,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum GaugeLabelFormat
+{
+    CurrentAndMax,
+    CurrentOnly,
+}
+
 [RequireComponent(typeof(CanvasGroup))]
 public class GenericGauge : MonoBehaviour
 {
@@ -15,6 +21,7 @@ public class GenericGauge : MonoBehaviour
 
     [Header("Text Label")]
     [SerializeField] private bool _showText = false;
+    [SerializeField] private GaugeLabelFormat _labelFormat = GaugeLabelFormat.CurrentAndMax;
     [SerializeField] private TMP_Text _label;
 
     [Header("Visibility")]
@@ -85,6 +92,8 @@ public class GenericGauge : MonoBehaviour
         maxValue = Mathf.Max(maxValue, 0.0001f);
         float targetNormalized = Mathf.Clamp01(currentValue / maxValue);
 
+        UpdateLabel(currentValue, maxValue);
+
         if (targetNormalized >= 1f && _hideWhenFull)
             HideGauge(instant);
 
@@ -98,7 +107,6 @@ public class GenericGauge : MonoBehaviour
             ShowGauge();
 
         UpdateFill(targetNormalized, instant);
-        UpdateLabel(currentValue);
 
         if (showChunks)
         {
@@ -249,10 +257,15 @@ public class GenericGauge : MonoBehaviour
         _fillTween = _fillImage.DOFillAmount(targetFill, _smoothFillDuration).SetEase(Ease.OutCubic);
     }
 
-    private void UpdateLabel(float currentValue)
+    private void UpdateLabel(float currentValue, float maxValue)
     {
         if (!_showText) return;
-        _label.text = currentValue.ToString("N0");
+
+        float displayedValue = Mathf.Clamp(currentValue, 0f, maxValue);
+
+        _label.text = _labelFormat == GaugeLabelFormat.CurrentOnly
+            ? $"{displayedValue:N0}"
+            : $"{displayedValue:N0}/{maxValue:N0}";
     }
 
     private void ShowGauge()

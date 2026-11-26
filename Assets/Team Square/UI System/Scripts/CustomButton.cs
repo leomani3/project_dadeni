@@ -10,24 +10,19 @@ using UnityEngine.EventSystems;
 public class CustomButton : AUIElement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
     #region Actions
-    [TitleGroup("Actions")]
     public Action<int> onClick;
     public Action<int> onHoverEnter;
     public Action<int> onHoverExit;
     #endregion
 
     #region Dependencies
-    [TitleGroup("Dependencies"), Required]
+    [Required]
     [SerializeField] protected Button m_button;
-    [TitleGroup("Dependencies")]
     [SerializeField] protected RectTransform m_lockedContent;
-    [TitleGroup("Dependencies")]
     [SerializeField] private GameObject m_highlightObject;
     #endregion
 
     #region Settings    
-    [TitleGroup("Settings")]
-    [ReadOnly]
     [SerializeField] protected int m_index;
     public int Index => m_index;
     public GameConfig.UISettings UISettings => GameConfig.Instance.uiSettings;
@@ -97,8 +92,7 @@ public class CustomButton : AUIElement, IPointerClickHandler, IPointerEnterHandl
 
     public virtual void PlayClickSound()
     {
-        SoundManager.Instance.PlaySound(SoundKeys.ui_button_click_negative);
-        
+        SoundManager.Instance.PlaySound(SoundKeys.ui_button_click_positive);
     }
     
     public virtual void PlayNegativeClickSound()
@@ -196,23 +190,21 @@ public class CustomButton : AUIElement, IPointerClickHandler, IPointerEnterHandl
 
     protected virtual void ScaleOnHoverEnter()
     {
-        // Kill existing hover tween
-        if (m_hoverSequence != null && m_hoverSequence.IsActive())
-            m_hoverSequence.Complete();
-        
-        m_hoverSequence = DOTween.Sequence().SetUpdate(true);
-        m_hoverSequence.Join(m_content.DOPunchScale(Vector3.one * 0.3f, 0.15f, 1));
-        m_hoverSequence.Join(m_content.DOPunchRotation(Vector3.forward * -5f, 0.15f, 1));
+        ScaleContentTo(UISettings.hoverScale);
     }
 
     protected virtual void ScaleOnHoverExit()
     {
-        // Kill existing hover tween
+        ScaleContentTo(Vector3.one);
+    }
+
+    private void ScaleContentTo(Vector3 _scale)
+    {
         if (m_hoverSequence != null && m_hoverSequence.IsActive())
-            m_hoverSequence.Complete();
-        
+            m_hoverSequence.Kill();
+
         m_hoverSequence = DOTween.Sequence().SetUpdate(true);
-        m_hoverSequence.Join(m_content.DOScale(Vector3.one, 0.15f));
+        m_hoverSequence.Join(m_content.DOScale(_scale, UISettings.hoverScaleDuration).SetEase(Ease.OutQuad));
     }
 
     protected virtual void ResetHoverScale()
