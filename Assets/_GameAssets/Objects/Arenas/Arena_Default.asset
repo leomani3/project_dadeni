@@ -12,39 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 958618f586a00dc42837ea3436508c71, type: 3}
   m_Name: Arena_Default
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.ArenaLayout
-  m_cellSize: 1.35
+  m_cellSize: 1.5
   m_areaSize: {x: 20, y: 20}
   m_cells:
-  - coordinate: {x: -7, y: -7}
-    type: 0
-  - coordinate: {x: -7, y: -6}
-    type: 0
-  - coordinate: {x: -7, y: -5}
-    type: 0
-  - coordinate: {x: -7, y: -4}
-    type: 0
-  - coordinate: {x: -7, y: -3}
-    type: 0
-  - coordinate: {x: -7, y: -2}
-    type: 0
-  - coordinate: {x: -7, y: -1}
-    type: 0
-  - coordinate: {x: -7, y: 0}
-    type: 0
-  - coordinate: {x: -7, y: 1}
-    type: 0
-  - coordinate: {x: -7, y: 2}
-    type: 0
-  - coordinate: {x: -7, y: 3}
-    type: 0
-  - coordinate: {x: -7, y: 4}
-    type: 0
-  - coordinate: {x: -7, y: 5}
-    type: 0
-  - coordinate: {x: -7, y: 6}
-    type: 0
-  - coordinate: {x: -6, y: -7}
-    type: 0
   - coordinate: {x: -6, y: -6}
     type: 0
   - coordinate: {x: -6, y: -5}
@@ -71,8 +41,6 @@ MonoBehaviour:
     type: 0
   - coordinate: {x: -6, y: 6}
     type: 0
-  - coordinate: {x: -5, y: -7}
-    type: 0
   - coordinate: {x: -5, y: -6}
     type: 0
   - coordinate: {x: -5, y: -5}
@@ -84,7 +52,7 @@ MonoBehaviour:
   - coordinate: {x: -5, y: -2}
     type: 0
   - coordinate: {x: -5, y: -1}
-    type: 0
+    type: 1
   - coordinate: {x: -5, y: 0}
     type: 0
   - coordinate: {x: -5, y: 1}
@@ -92,15 +60,13 @@ MonoBehaviour:
   - coordinate: {x: -5, y: 2}
     type: 0
   - coordinate: {x: -5, y: 3}
-    type: 0
+    type: 2
   - coordinate: {x: -5, y: 4}
     type: 0
   - coordinate: {x: -5, y: 5}
     type: 0
   - coordinate: {x: -5, y: 6}
-    type: 0
-  - coordinate: {x: -4, y: -7}
-    type: 0
+    type: 2
   - coordinate: {x: -4, y: -6}
     type: 0
   - coordinate: {x: -4, y: -5}
@@ -126,9 +92,7 @@ MonoBehaviour:
   - coordinate: {x: -4, y: 5}
     type: 0
   - coordinate: {x: -4, y: 6}
-    type: 0
-  - coordinate: {x: -3, y: -7}
-    type: 0
+    type: 2
   - coordinate: {x: -3, y: -6}
     type: 0
   - coordinate: {x: -3, y: -5}
@@ -154,13 +118,11 @@ MonoBehaviour:
   - coordinate: {x: -3, y: 5}
     type: 0
   - coordinate: {x: -3, y: 6}
-    type: 0
-  - coordinate: {x: -2, y: -7}
-    type: 0
+    type: 2
   - coordinate: {x: -2, y: -6}
     type: 0
   - coordinate: {x: -2, y: -5}
-    type: 0
+    type: 1
   - coordinate: {x: -2, y: -4}
     type: 0
   - coordinate: {x: -2, y: -3}
@@ -182,8 +144,6 @@ MonoBehaviour:
   - coordinate: {x: -2, y: 5}
     type: 0
   - coordinate: {x: -2, y: 6}
-    type: 0
-  - coordinate: {x: -1, y: -7}
     type: 0
   - coordinate: {x: -1, y: -6}
     type: 0
@@ -211,8 +171,6 @@ MonoBehaviour:
     type: 0
   - coordinate: {x: -1, y: 6}
     type: 0
-  - coordinate: {x: 0, y: -7}
-    type: 0
   - coordinate: {x: 0, y: -6}
     type: 0
   - coordinate: {x: 0, y: -5}
@@ -238,8 +196,6 @@ MonoBehaviour:
   - coordinate: {x: 0, y: 5}
     type: 0
   - coordinate: {x: 0, y: 6}
-    type: 0
-  - coordinate: {x: 1, y: -7}
     type: 0
   - coordinate: {x: 1, y: -6}
     type: 0
@@ -267,8 +223,6 @@ MonoBehaviour:
     type: 0
   - coordinate: {x: 1, y: 6}
     type: 0
-  - coordinate: {x: 2, y: -7}
-    type: 0
   - coordinate: {x: 2, y: -6}
     type: 0
   - coordinate: {x: 2, y: -5}
@@ -295,8 +249,6 @@ MonoBehaviour:
     type: 0
   - coordinate: {x: 2, y: 6}
     type: 0
-  - coordinate: {x: 3, y: -7}
-    type: 0
   - coordinate: {x: 3, y: -6}
     type: 0
   - coordinate: {x: 3, y: -5}
@@ -320,15 +272,13 @@ MonoBehaviour:
   - coordinate: {x: 3, y: 4}
     type: 0
   - coordinate: {x: 3, y: 5}
-    type: 0
+    type: 2
   - coordinate: {x: 3, y: 6}
-    type: 0
-  - coordinate: {x: 4, y: -7}
     type: 0
   - coordinate: {x: 4, y: -6}
     type: 0
   - coordinate: {x: 4, y: -5}
-    type: 0
+    type: 1
   - coordinate: {x: 4, y: -4}
     type: 0
   - coordinate: {x: 4, y: -3}
@@ -351,8 +301,6 @@ MonoBehaviour:
     type: 0
   - coordinate: {x: 4, y: 6}
     type: 0
-  - coordinate: {x: 5, y: -7}
-    type: 0
   - coordinate: {x: 5, y: -6}
     type: 0
   - coordinate: {x: 5, y: -5}
@@ -362,7 +310,7 @@ MonoBehaviour:
   - coordinate: {x: 5, y: -3}
     type: 0
   - coordinate: {x: 5, y: -2}
-    type: 0
+    type: 1
   - coordinate: {x: 5, y: -1}
     type: 0
   - coordinate: {x: 5, y: 0}
@@ -374,12 +322,10 @@ MonoBehaviour:
   - coordinate: {x: 5, y: 3}
     type: 0
   - coordinate: {x: 5, y: 4}
-    type: 0
+    type: 2
   - coordinate: {x: 5, y: 5}
     type: 0
   - coordinate: {x: 5, y: 6}
-    type: 0
-  - coordinate: {x: 6, y: -7}
     type: 0
   - coordinate: {x: 6, y: -6}
     type: 0

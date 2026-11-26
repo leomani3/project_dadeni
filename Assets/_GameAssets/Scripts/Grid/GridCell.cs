@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Deckbuilder.Grid
@@ -14,6 +15,10 @@ namespace Deckbuilder.Grid
         [SerializeField] private Vector2Int m_coordinate;
         [SerializeField] private CellType m_cellType;
         [SerializeField] private GameObject m_obstacleVisual;
+        [SerializeField, Required] private MeshFilter m_obstacleMeshFilter;
+        [SerializeField, Required] private MeshRenderer m_obstacleRenderer;
+        [SerializeField, Required] private MeshFilter m_tileMeshFilter;
+        [SerializeField, Required] private MeshRenderer m_tileRenderer;
 
         private readonly Dictionary<GridDirection, GridCell> m_neighbors = new();
 
@@ -43,6 +48,20 @@ namespace Deckbuilder.Grid
         {
             m_cellType = _cellType;
             UpdateObstacleVisual();
+        }
+
+        public void SetTileVisual(Mesh _mesh, float _yRotation, Material _material)
+        {
+            m_tileMeshFilter.sharedMesh = _mesh;
+            m_tileMeshFilter.transform.localRotation = Quaternion.Euler(0f, _yRotation, 0f);
+            m_tileRenderer.sharedMaterial = _material;
+        }
+
+        public void SetObstacleVisual(Mesh _mesh, float _yRotation, Material _material)
+        {
+            m_obstacleMeshFilter.sharedMesh = _mesh;
+            m_obstacleMeshFilter.transform.localRotation = Quaternion.Euler(0f, _yRotation, 0f);
+            m_obstacleRenderer.sharedMaterial = _material;
         }
 
 #if UNITY_EDITOR

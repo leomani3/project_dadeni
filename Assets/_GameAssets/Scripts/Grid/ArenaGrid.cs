@@ -13,12 +13,34 @@ namespace Deckbuilder.Grid
         [SerializeField, Required] private GridCell m_cellPrefab;
         [SerializeField, Min(0.01f)] private float m_cellPrefabFootprint = 1f;
         [SerializeField, Required] private Material m_highlightMaterial;
+        [SerializeField, Required] private Mesh[] m_tileMeshes;
+        [SerializeField, Required] private Mesh[] m_obstacleMeshes;
+        [SerializeField, Required] private Material m_lightTileMaterial;
+        [SerializeField, Required] private Material m_darkTileMaterial;
+        [SerializeField, Required] private Material m_obstacleMaterial;
+        [SerializeField] private Color m_tileBaseColor = new(0.784f, 0.682f, 0.494f);
+        [SerializeField, Range(0f, 1f)] private float m_tileToneContrast = 0.22f;
+        [SerializeField, HideInInspector] private Color m_appliedTileBaseColor;
+        [SerializeField, HideInInspector] private float m_appliedTileToneContrast = -1f;
+
+        private const int MeshHashSalt = 1;
+        private const int RotationHashSalt = 2;
+        private const int ObstacleMeshHashSalt = 3;
+        private const int ObstacleRotationHashSalt = 4;
+        private const float ObstacleLightnessShift = -0.085f;
+        private const float ObstacleChromaScale = 1.06f;
+        private const float LightChromaScale = 0.94f;
+        private const float DarkChromaScale = 1.07f;
+        private const float TemperatureSplit = 0.02f;
+
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int LegacyColorId = Shader.PropertyToID("_Color");
 
         private readonly Dictionary<Vector2Int, GridCell> m_cellsByCoordinate = new();
         private readonly Dictionary<CellType, List<GridCell>> m_cellsByType = new();
         private readonly List<GridCell> m_cells = new();
         private readonly List<CellHighlightSource> m_highlightSources = new();
-        private readonly CellZoneMeshBuilder m_highlightMeshBuilder = new();
+        private readonly CellHighlightMeshBuilder m_highlightMeshBuilder = new();
         private readonly List<Vector2Int> m_coordinateBuffer = new();
 
         public IReadOnlyList<GridCell> Cells => m_cells;
@@ -41,6 +63,9 @@ namespace Deckbuilder.Grid
 
             CellSize = m_layout.CellSize;
 
+#if UNITY_EDITOR
+            ApplyTileTones();
+#endif
             SpawnCellsFromLayout();
             CellsRoot.GetComponentsInChildren(true, m_cells);
 
@@ -83,7 +108,129 @@ namespace Deckbuilder.Grid
                 _cell.name = $"Cell {_entry.coordinate.x},{_entry.coordinate.y}";
                 _cell.SetCoordinate(_entry.coordinate);
                 _cell.SetCellType(_entry.type);
+                _cell.SetTileVisual(
+                    m_tileMeshes[CoordinateHash(_entry.coordinate, MeshHashSalt) % m_tileMeshes.Length],
+                    90f * (CoordinateHash(_entry.coordinate, RotationHashSalt) % 4),
+                    IsLightTile(_entry.coordinate) ? m_lightTileMaterial : m_darkTileMaterial);
+
+                _cell.SetObstacleVisual(
+                    m_obstacleMeshes[CoordinateHash(_entry.coordinate, ObstacleMeshHashSalt) % m_obstacleMeshes.Length],
+                    90f * (CoordinateHash(_entry.coordinate, ObstacleRotationHashSalt) % 4),
+                    m_obstacleMaterial);
             }
+        }
+
+        private static bool IsLightTile(Vector2Int _coordinate)
+        {
+            return ((_coordinate.x + _coordinate.y) & 1) == 0;
+        }
+
+        private static int CoordinateHash(Vector2Int _coordinate, int _salt)
+        {
+            unchecked
+            {
+                int _hash = (_coordinate.x * 73856093) ^ (_coordinate.y * 19349663) ^ (_salt * 83492791);
+                _hash = (_hash ^ (_hash >> 13)) * 1274126177;
+                return (_hash ^ (_hash >> 16)) & int.MaxValue;
+            }
+        }
+
+        public void ApplyTileTones()
+        {
+            DeriveTileTones(m_tileBaseColor, m_tileToneContrast, out Color _light, out Color _dark);
+            SetTileMaterialColor(m_lightTileMaterial, _light);
+            SetTileMaterialColor(m_darkTileMaterial, _dark);
+            SetTileMaterialColor(m_obstacleMaterial, DeriveObstacleTone(_dark));
+
+            m_appliedTileBaseColor = m_tileBaseColor;
+            m_appliedTileToneContrast = m_tileToneContrast;
+        }
+
+        public static Color DeriveObstacleTone(Color _darkLinear)
+        {
+            Vector3 _oklab = LinearToOklab(new Vector3(_darkLinear.r, _darkLinear.g, _darkLinear.b));
+
+            return OklabToLinear(new Vector3(
+                Mathf.Max(0f, _oklab.x + ObstacleLightnessShift),
+                _oklab.y * ObstacleChromaScale,
+                _oklab.z * ObstacleChromaScale));
+        }
+
+        private static void SetTileMaterialColor(Material _material, Color _linearColor)
+        {
+            Color _value = _linearColor.gamma;
+            bool _changed = false;
+
+            if (_material.HasProperty(BaseColorId) && _material.GetColor(BaseColorId) != _value)
+            {
+                _material.SetColor(BaseColorId, _value);
+                _changed = true;
+            }
+
+            if (_material.HasProperty(LegacyColorId) && _material.GetColor(LegacyColorId) != _value)
+            {
+                _material.SetColor(LegacyColorId, _value);
+                _changed = true;
+            }
+
+#if UNITY_EDITOR
+            if (_changed)
+                UnityEditor.EditorUtility.SetDirty(_material);
+#endif
+        }
+
+        public static void DeriveTileTones(Color _baseColor, float _contrast, out Color _light, out Color _dark)
+        {
+            Color _linear = _baseColor.linear;
+            Vector3 _oklab = LinearToOklab(new Vector3(_linear.r, _linear.g, _linear.b));
+
+            _light = OklabToLinear(new Vector3(
+                _oklab.x + _contrast * 0.5f * (1f - _oklab.x),
+                _oklab.y * LightChromaScale,
+                _oklab.z * LightChromaScale + _contrast * TemperatureSplit));
+
+            _dark = OklabToLinear(new Vector3(
+                _oklab.x - _contrast * 0.5f * _oklab.x,
+                _oklab.y * DarkChromaScale,
+                _oklab.z * DarkChromaScale - _contrast * TemperatureSplit));
+        }
+
+        private static Vector3 LinearToOklab(Vector3 _linear)
+        {
+            float _long = 0.4122214708f * _linear.x + 0.5363325363f * _linear.y + 0.0514459929f * _linear.z;
+            float _medium = 0.2119034982f * _linear.x + 0.6806995451f * _linear.y + 0.1073969566f * _linear.z;
+            float _short = 0.0883024619f * _linear.x + 0.2817188376f * _linear.y + 0.6299787005f * _linear.z;
+
+            float _longRoot = CubeRoot(_long);
+            float _mediumRoot = CubeRoot(_medium);
+            float _shortRoot = CubeRoot(_short);
+
+            return new Vector3(
+                0.2104542553f * _longRoot + 0.7936177850f * _mediumRoot - 0.0040720468f * _shortRoot,
+                1.9779984951f * _longRoot - 2.4285922050f * _mediumRoot + 0.4505937099f * _shortRoot,
+                0.0259040371f * _longRoot + 0.7827717662f * _mediumRoot - 0.8086757660f * _shortRoot);
+        }
+
+        private static Color OklabToLinear(Vector3 _oklab)
+        {
+            float _longRoot = _oklab.x + 0.3963377774f * _oklab.y + 0.2158037573f * _oklab.z;
+            float _mediumRoot = _oklab.x - 0.1055613458f * _oklab.y - 0.0638541728f * _oklab.z;
+            float _shortRoot = _oklab.x - 0.0894841775f * _oklab.y - 1.2914855480f * _oklab.z;
+
+            float _long = _longRoot * _longRoot * _longRoot;
+            float _medium = _mediumRoot * _mediumRoot * _mediumRoot;
+            float _short = _shortRoot * _shortRoot * _shortRoot;
+
+            return new Color(
+                Mathf.Max(0f, 4.0767416621f * _long - 3.3077115913f * _medium + 0.2309699292f * _short),
+                Mathf.Max(0f, -1.2684380046f * _long + 2.6097574011f * _medium - 0.3413193965f * _short),
+                Mathf.Max(0f, -0.0041960863f * _long - 0.7034186147f * _medium + 1.7076147010f * _short),
+                1f);
+        }
+
+        private static float CubeRoot(float _value)
+        {
+            return Mathf.Sign(_value) * Mathf.Pow(Mathf.Abs(_value), 1f / 3f);
         }
 
         private GridCell InstantiateCell()
@@ -114,6 +261,14 @@ namespace Deckbuilder.Grid
         {
             Build();
             UnityEditor.EditorUtility.SetDirty(this);
+        }
+
+        private void OnValidate()
+        {
+            if (m_appliedTileBaseColor == m_tileBaseColor && Mathf.Approximately(m_appliedTileToneContrast, m_tileToneContrast))
+                return;
+
+            ApplyTileTones();
         }
 #endif
 
