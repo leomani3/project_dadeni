@@ -26,6 +26,7 @@ public class CombatDeckView : MonoBehaviour
     private static readonly Key[] HotkeyNumpadKeys = { Key.Numpad1, Key.Numpad2, Key.Numpad3, Key.Numpad4, Key.Numpad5, Key.Numpad6, Key.Numpad7, Key.Numpad8, Key.Numpad9, Key.Numpad0 };
 
     public event Action onTransfersSettled;
+    public event Action<CardInstance> onUnaffordableCardRejected;
 
     [SerializeField, Required] private Canvas _canvas;
     [SerializeField, Required] private Card _cardPrefab;
@@ -83,6 +84,7 @@ public class CombatDeckView : MonoBehaviour
     private bool _isArrowOnValidTarget;
     private bool _wasTransferring;
     private float _nextTransferStartTime;
+    private int _availableActionPoints;
 
     public CardInstance HoveredCard => _hoveredView != null ? _hoveredView.Instance : null;
     public CardInstance DraggedCard => _draggedView != null ? _draggedView.Instance : null;
@@ -160,6 +162,12 @@ public class CombatDeckView : MonoBehaviour
         RefreshHandLayout();
     }
 
+    public void SetAvailableActionPoints(int _actionPoints)
+    {
+        _availableActionPoints = _actionPoints;
+        RefreshPlayableHighlights();
+    }
+
     public void CancelSelection()
     {
         _selectedCard = null;
@@ -229,6 +237,12 @@ public class CombatDeckView : MonoBehaviour
             return;
         }
 
+        if (!CanAfford(_card))
+        {
+            RejectUnaffordableCard(_card);
+            return;
+        }
+
         _draggedView = null;
         _hoveredView = null;
         _selectedCard = _card;
@@ -266,10 +280,27 @@ public class CombatDeckView : MonoBehaviour
 
     private void SelectDraggedCard()
     {
+        if (!CanAfford(_draggedView.Instance))
+        {
+            RejectUnaffordableCard(_draggedView.Instance);
+            return;
+        }
+
         _selectedCard = _draggedView.Instance;
         _draggedView = null;
         _hoveredView = null;
         RefreshHandLayout();
+    }
+
+    private bool CanAfford(CardInstance _card)
+    {
+        return _card.Cost <= _availableActionPoints;
+    }
+
+    private void RejectUnaffordableCard(CardInstance _card)
+    {
+        CancelSelection();
+        onUnaffordableCardRejected?.Invoke(_card);
     }
 
     private void NotifyTransfersSettled()
@@ -291,6 +322,8 @@ public class CombatDeckView : MonoBehaviour
             _arrivingViews.Remove(_view);
             _detachedViews[_card] = _view;
             _view.SetHotkey(string.Empty);
+            _view.SetPlayable(false);
+            _view.SetAffordable(true);
 
             if (_hoveredView == _view)
                 _hoveredView = null;
@@ -452,6 +485,8 @@ public class CombatDeckView : MonoBehaviour
         _view.SetFaceUp(_isFaceUp);
         _view.SnapTo(_localPosition, 0f, _scale);
         _view.SetBlocksRaycasts(true);
+        _view.SetPlayable(false);
+        _view.SetAffordable(true);
         _view.onPressed += HandleCardViewPressed;
         _view.onHoverChanged += HandleCardViewHoverChanged;
 
@@ -573,6 +608,17 @@ public class CombatDeckView : MonoBehaviour
         }
 
         RefreshHotkeyLabels();
+        RefreshPlayableHighlights();
+    }
+
+    private void RefreshPlayableHighlights()
+    {
+        foreach (Card _view in _handViews.Values)
+        {
+            bool _isAffordable = CanAfford(_view.Instance);
+            _view.SetPlayable(_isInteractable && _isAffordable);
+            _view.SetAffordable(_isAffordable);
+        }
     }
 
     private void RefreshHotkeyLabels()

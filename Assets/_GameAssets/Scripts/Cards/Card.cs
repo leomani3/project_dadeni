@@ -7,6 +7,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Deckbuilder.Cards
 {
@@ -28,11 +29,15 @@ namespace Deckbuilder.Cards
         [SerializeField, Required] private TMP_Text _costLabel;
         [SerializeField, Required] private TMP_Text _descriptionLabel;
         [SerializeField, Required] private TMP_Text _hotkeyLabel;
+        [SerializeField, Required] private Image _illustration;
+        [SerializeField, Required] private GameObject _playableHighlight;
         [SerializeField] private Color _upgradeHighlightColor = new Color(0.36f, 0.9f, 0.36f);
+        [SerializeField] private Color _unaffordableCostColor = new Color(1f, 0.28f, 0.22f);
         [SerializeField, Range(0f, 1f)] private float _flipPortionOfFlight = 0.3f;
         [SerializeField, Range(0.01f, 1f)] private float _shrinkPortionOfFlight = 0.35f;
 
         private bool _highlightUpgradeDifferences;
+        private Color _affordableCostColor;
         private Sequence _motionTween;
 
         public CardInstance Instance { get; private set; }
@@ -40,6 +45,11 @@ namespace Deckbuilder.Cards
         public bool IsFaceUp { get; private set; } = true;
 
         private CardConfig Config => Instance.Config;
+
+        private void Awake()
+        {
+            _affordableCostColor = _costLabel.color;
+        }
 
         private void Reset()
         {
@@ -55,6 +65,8 @@ namespace Deckbuilder.Cards
             _titleLabel.text = BuildTitle();
             _costLabel.text = HighlightIfChanged(FormatValue(Instance.Cost), FormatValue(Config.GetCost(false)));
             _descriptionLabel.text = BuildDescription();
+            _illustration.sprite = Config.Illustration;
+            _illustration.enabled = Config.Illustration != null;
             SetHotkey(string.Empty);
         }
 
@@ -67,6 +79,16 @@ namespace Deckbuilder.Cards
         {
             _hotkeyLabel.text = _hotkey;
             _hotkeyLabel.gameObject.SetActive(!string.IsNullOrEmpty(_hotkey));
+        }
+
+        public void SetPlayable(bool _isPlayable)
+        {
+            _playableHighlight.SetActive(_isPlayable);
+        }
+
+        public void SetAffordable(bool _isAffordable)
+        {
+            _costLabel.color = _isAffordable ? _affordableCostColor : _unaffordableCostColor;
         }
 
         public void SetFaceUp(bool _isFaceUp)

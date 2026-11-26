@@ -394,6 +394,7 @@ namespace Deckbuilder.Combat
         private void HandleActionPointsChanged(int _remaining, int _max)
         {
             m_combatCanvas.SetActionPoints(_remaining, _max);
+            m_combatCanvas.DeckView.SetAvailableActionPoints(_remaining);
         }
 
         private void HandleMovementPointsChanged(int _remaining, int _max)
