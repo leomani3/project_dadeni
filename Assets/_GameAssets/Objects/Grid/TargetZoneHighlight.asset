@@ -12,11 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e49374582f59be44bb01a46788d2ad20, type: 3}
   m_Name: TargetZoneHighlight
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.CellHighlightStyle
-  m_fillColor: {r: 0.28, g: 0.58, b: 0.9, a: 0.14}
-  m_outlineColor: {r: 0.45, g: 0.75, b: 1, a: 0.7}
-  m_outlineWidth: 0.05
-  m_fillInterior: 1
+  m_mode: 0
+  m_fillColor: {r: 0, g: 0.1287, b: 0.62, a: 0.858}
+  m_centerColor: {r: 0, g: 0.2533, b: 0.88, a: 0.98}
+  m_borderColor: {r: 0.06, g: 0.36, b: 0.96, a: 0.98}
+  m_borderWidth: 0.05
+  m_gradientPower: 1.6
+  m_cellScale: 0.97
+  m_glyphThickness: 0.12
+  m_glyphRadius: 0.55
+  m_glyphScale: 0.45
+  m_glyphSpacing: 0.4
   m_highlightCoefficient: 1
   m_heightOffset: 0.012
   m_order: 0
-  m_blend: 0
+  m_blend: 1

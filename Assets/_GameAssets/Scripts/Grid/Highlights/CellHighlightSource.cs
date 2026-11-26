@@ -6,6 +6,14 @@ namespace Deckbuilder.Grid
 {
     public class CellHighlightSource
     {
+        private static readonly int ModeId = Shader.PropertyToID("_Mode");
+        private static readonly int FillColorId = Shader.PropertyToID("_FillColor");
+        private static readonly int CenterColorId = Shader.PropertyToID("_CenterColor");
+        private static readonly int BorderColorId = Shader.PropertyToID("_BorderColor");
+        private static readonly int BorderWidthId = Shader.PropertyToID("_BorderWidth");
+        private static readonly int GradientPowerId = Shader.PropertyToID("_GradientPower");
+        private static readonly int GlyphThicknessId = Shader.PropertyToID("_GlyphThickness");
+        private static readonly int GlyphRadiusId = Shader.PropertyToID("_GlyphRadius");
         private static readonly int HighlightCoefId = Shader.PropertyToID("_HighlightCoef");
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
@@ -17,10 +25,9 @@ namespace Deckbuilder.Grid
         private readonly Material m_material;
         private readonly Mesh m_mesh;
 
-        private List<GridCell> m_cells = new();
-        private List<GridCell> m_pendingCells = new();
-        private HashSet<GridCell> m_cellSet = new();
-        private HashSet<GridCell> m_pendingCellSet = new();
+        private readonly List<GridCell> m_cells = new();
+        private readonly List<GridCell> m_pendingCells = new();
+        private readonly HashSet<GridCell> m_pendingCellSet = new();
 
         private CellHighlightStyle m_style;
         private bool m_isVisible = true;
@@ -69,13 +76,27 @@ namespace Deckbuilder.Grid
                     m_pendingCells.Add(_cell);
             }
 
-            if (m_pendingCellSet.SetEquals(m_cellSet))
+            if (IsSameAsCurrent(m_pendingCells))
                 return;
 
-            (m_cells, m_pendingCells) = (m_pendingCells, m_cells);
-            (m_cellSet, m_pendingCellSet) = (m_pendingCellSet, m_cellSet);
+            m_cells.Clear();
+            m_cells.AddRange(m_pendingCells);
 
             IsDirty = true;
+        }
+
+        private bool IsSameAsCurrent(List<GridCell> _cells)
+        {
+            if (_cells.Count != m_cells.Count)
+                return false;
+
+            for (int _i = 0; _i < _cells.Count; _i++)
+            {
+                if (_cells[_i] != m_cells[_i])
+                    return false;
+            }
+
+            return true;
         }
 
         public void Clear()
@@ -84,7 +105,6 @@ namespace Deckbuilder.Grid
                 return;
 
             m_cells.Clear();
-            m_cellSet.Clear();
 
             IsDirty = true;
         }
@@ -119,7 +139,7 @@ namespace Deckbuilder.Grid
             Object.Destroy(m_material);
         }
 
-        internal void Rebuild(CellZoneMeshBuilder _meshBuilder)
+        internal void Rebuild(CellHighlightMeshBuilder _meshBuilder)
         {
             IsDirty = false;
 
@@ -135,6 +155,14 @@ namespace Deckbuilder.Grid
             m_transform.localPosition = new Vector3(0f, m_style.HeightOffset, 0f);
             m_meshRenderer.sortingOrder = m_style.Order;
 
+            m_material.SetFloat(ModeId, (float)m_style.Mode);
+            m_material.SetColor(FillColorId, m_style.FillColor);
+            m_material.SetColor(CenterColorId, m_style.CenterColor);
+            m_material.SetColor(BorderColorId, m_style.BorderColor);
+            m_material.SetFloat(BorderWidthId, m_style.BorderWidth);
+            m_material.SetFloat(GradientPowerId, m_style.GradientPower);
+            m_material.SetFloat(GlyphThicknessId, m_style.GlyphThickness);
+            m_material.SetFloat(GlyphRadiusId, m_style.GlyphRadius);
             m_material.SetFloat(HighlightCoefId, m_style.HighlightCoefficient);
             m_material.SetFloat(SrcBlendId, (float)BlendMode.One);
             m_material.SetFloat(DstBlendId, (float)(m_style.Blend == CellHighlightBlend.Additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));

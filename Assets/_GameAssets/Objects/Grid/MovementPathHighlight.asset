@@ -12,11 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e49374582f59be44bb01a46788d2ad20, type: 3}
   m_Name: MovementPathHighlight
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.CellHighlightStyle
-  m_fillColor: {r: 0.45, g: 1, b: 0.65, a: 0.3}
-  m_outlineColor: {r: 0.75, g: 1, b: 0.85, a: 0.9}
-  m_outlineWidth: 0.08
-  m_fillInterior: 1
+  m_mode: 1
+  m_fillColor: {r: 1, g: 1, b: 1, a: 0.98}
+  m_centerColor: {r: 1, g: 1, b: 1, a: 0.98}
+  m_borderColor: {r: 0.015, g: 0.12, b: 0.045, a: 0.715}
+  m_borderWidth: 0.045
+  m_gradientPower: 1.4
+  m_cellScale: 1
+  m_glyphThickness: 0.155
+  m_glyphRadius: 0.18
+  m_glyphScale: 0.42
+  m_glyphSpacing: 0.45
   m_highlightCoefficient: 1
-  m_heightOffset: 0.02
-  m_order: 10
-  m_blend: 0
+  m_heightOffset: 0.032
+  m_order: 30
+  m_blend: 1

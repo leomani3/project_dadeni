@@ -3,222 +3,140 @@ using UnityEngine;
 
 namespace Deckbuilder.Grid
 {
-    public class CellZoneMeshBuilder
+    public class CellHighlightMeshBuilder
     {
-        private static readonly Vector2Int South = new(0, -1);
-        private static readonly Vector2Int East = new(1, 0);
-        private static readonly Vector2Int North = new(0, 1);
-        private static readonly Vector2Int West = new(-1, 0);
-        private static readonly Vector2Int NorthEast = new(1, 1);
+        private const float TurnDotScale = 0.75f;
+        private const float ArrivalDotScale = 1.4f;
+        private const float DotClearanceRatio = 0.45f;
+        private const float DotGlyph = 1f;
+        private const float ChevronGlyph = 0f;
 
-        private readonly HashSet<Vector2Int> m_coordinates = new();
-        private readonly Dictionary<Vector2Int, int> m_fillVertexIndices = new();
-        private readonly Dictionary<Vector2Int, List<Vector2Int>> m_boundaryEdges = new();
-        private readonly List<Vector2Int> m_boundaryEdgeStarts = new();
-        private readonly List<Vector2Int> m_loop = new();
         private readonly List<Vector3> m_vertices = new();
-        private readonly List<Color> m_colors = new();
+        private readonly List<Vector2> m_uvs = new();
+        private readonly List<Vector2> m_glyphs = new();
         private readonly List<int> m_triangles = new();
 
         public void Build(IReadOnlyList<GridCell> _cells, float _cellSize, CellHighlightStyle _style, Mesh _mesh)
         {
             m_vertices.Clear();
-            m_colors.Clear();
+            m_uvs.Clear();
+            m_glyphs.Clear();
             m_triangles.Clear();
-            m_fillVertexIndices.Clear();
-            m_coordinates.Clear();
 
-            foreach (GridCell _cell in _cells)
-                m_coordinates.Add(_cell.Coordinate);
-
-            if (_style.FillInterior)
-                AppendFill(_cellSize, _style.FillColor);
-
-            if (_style.OutlineWidth > 0f)
-                AppendOutline(_cellSize, _style.OutlineWidth * _cellSize, _style.OutlineColor);
+            if (_style.Mode == CellHighlightMode.Path)
+                AppendPath(_cells, _cellSize, _style);
+            else
+                AppendCellQuads(_cells, _cellSize, _cellSize * _style.CellScale);
 
             _mesh.Clear();
             _mesh.SetVertices(m_vertices);
-            _mesh.SetColors(m_colors);
+            _mesh.SetUVs(0, m_uvs);
+            _mesh.SetUVs(1, m_glyphs);
             _mesh.SetTriangles(m_triangles, 0);
             _mesh.RecalculateBounds();
         }
 
-        private void AppendFill(float _cellSize, Color _color)
+        private void AppendCellQuads(IReadOnlyList<GridCell> _cells, float _cellSize, float _quadSize)
         {
-            foreach (Vector2Int _coordinate in m_coordinates)
+            foreach (GridCell _cell in _cells)
+                AppendQuad(CoordinateToLocalPosition(_cell.Coordinate, _cellSize), Vector3.right, Vector3.forward, _quadSize, 0f);
+        }
+
+        private void AppendPath(IReadOnlyList<GridCell> _cells, float _cellSize, CellHighlightStyle _style)
+        {
+            int _stepCount = _cells.Count - 1;
+
+            if (_stepCount < 1)
+                return;
+
+            float _size = _cellSize * _style.GlyphScale;
+            float _spacing = Mathf.Max(0.05f, _style.GlyphSpacing) * _cellSize;
+            float _length = _stepCount * _cellSize;
+            float _turnClearance = (_size * TurnDotScale + _size) * DotClearanceRatio;
+            float _arrivalClearance = (_size * ArrivalDotScale + _size) * DotClearanceRatio;
+
+            for (float _travelled = _spacing * 0.5f; _travelled < _length; _travelled += _spacing)
             {
-                int _southWest = GetFillVertex(_coordinate, _cellSize, _color);
-                int _southEast = GetFillVertex(_coordinate + East, _cellSize, _color);
-                int _northEast = GetFillVertex(_coordinate + NorthEast, _cellSize, _color);
-                int _northWest = GetFillVertex(_coordinate + North, _cellSize, _color);
-
-                m_triangles.Add(_southWest);
-                m_triangles.Add(_northWest);
-                m_triangles.Add(_northEast);
-
-                m_triangles.Add(_southWest);
-                m_triangles.Add(_northEast);
-                m_triangles.Add(_southEast);
-            }
-        }
-
-        private int GetFillVertex(Vector2Int _corner, float _cellSize, Color _color)
-        {
-            if (m_fillVertexIndices.TryGetValue(_corner, out int _index))
-                return _index;
-
-            _index = m_vertices.Count;
-            m_fillVertexIndices[_corner] = _index;
-            m_vertices.Add(CornerToLocalPosition(_corner, _cellSize));
-            m_colors.Add(_color);
-
-            return _index;
-        }
-
-        private void AppendOutline(float _cellSize, float _width, Color _color)
-        {
-            CollectBoundaryEdges();
-
-            while (TryTakeLoop())
-                AppendRibbon(_cellSize, _width, _color);
-        }
-
-        private void CollectBoundaryEdges()
-        {
-            foreach (List<Vector2Int> _ends in m_boundaryEdges.Values)
-                _ends.Clear();
-
-            m_boundaryEdgeStarts.Clear();
-
-            foreach (Vector2Int _coordinate in m_coordinates)
-            {
-                if (!m_coordinates.Contains(_coordinate + South))
-                    AddBoundaryEdge(_coordinate, _coordinate + East);
-
-                if (!m_coordinates.Contains(_coordinate + East))
-                    AddBoundaryEdge(_coordinate + East, _coordinate + NorthEast);
-
-                if (!m_coordinates.Contains(_coordinate + North))
-                    AddBoundaryEdge(_coordinate + NorthEast, _coordinate + North);
-
-                if (!m_coordinates.Contains(_coordinate + West))
-                    AddBoundaryEdge(_coordinate + North, _coordinate);
-            }
-        }
-
-        private void AddBoundaryEdge(Vector2Int _from, Vector2Int _to)
-        {
-            if (!m_boundaryEdges.TryGetValue(_from, out List<Vector2Int> _ends))
-                m_boundaryEdges[_from] = _ends = new List<Vector2Int>();
-
-            _ends.Add(_to);
-            m_boundaryEdgeStarts.Add(_from);
-        }
-
-        private bool TryTakeLoop()
-        {
-            m_loop.Clear();
-
-            while (m_boundaryEdgeStarts.Count > 0)
-            {
-                Vector2Int _start = m_boundaryEdgeStarts[^1];
-
-                if (!HasBoundaryEdge(_start))
-                {
-                    m_boundaryEdgeStarts.RemoveAt(m_boundaryEdgeStarts.Count - 1);
+                if (_length - _travelled < _arrivalClearance || IsNearATurn(_cells, _cellSize, _travelled, _turnClearance))
                     continue;
-                }
 
-                Vector2Int _current = _start;
+                int _step = Mathf.Min((int)(_travelled / _cellSize), _stepCount - 1);
 
-                while (true)
-                {
-                    m_loop.Add(_current);
+                Vector3 _from = CoordinateToLocalPosition(_cells[_step].Coordinate, _cellSize);
+                Vector3 _to = CoordinateToLocalPosition(_cells[_step + 1].Coordinate, _cellSize);
 
-                    if (!TryTakeBoundaryEdge(_current, out Vector2Int _next) || _next == _start)
-                        break;
+                Vector3 _forward = (_to - _from).normalized;
+                Vector3 _right = new Vector3(_forward.z, 0f, -_forward.x);
 
-                    _current = _next;
-                }
+                AppendQuad(Vector3.Lerp(_from, _to, (_travelled - _step * _cellSize) / _cellSize), _right, _forward, _size, ChevronGlyph);
+            }
 
-                return true;
+            for (int _step = 1; _step < _stepCount; _step++)
+            {
+                if (!IsTurn(_cells, _step))
+                    continue;
+
+                AppendQuad(CoordinateToLocalPosition(_cells[_step].Coordinate, _cellSize), Vector3.right, Vector3.forward, _size * TurnDotScale, DotGlyph);
+            }
+
+            AppendQuad(CoordinateToLocalPosition(_cells[^1].Coordinate, _cellSize), Vector3.right, Vector3.forward, _size * ArrivalDotScale, DotGlyph);
+        }
+
+        private static bool IsNearATurn(IReadOnlyList<GridCell> _cells, float _cellSize, float _travelled, float _clearance)
+        {
+            for (int _step = 1; _step < _cells.Count - 1; _step++)
+            {
+                if (IsTurn(_cells, _step) && Mathf.Abs(_travelled - _step * _cellSize) < _clearance)
+                    return true;
             }
 
             return false;
         }
 
-        private bool HasBoundaryEdge(Vector2Int _from)
+        private static bool IsTurn(IReadOnlyList<GridCell> _cells, int _index)
         {
-            return m_boundaryEdges.TryGetValue(_from, out List<Vector2Int> _ends) && _ends.Count > 0;
-        }
-
-        private bool TryTakeBoundaryEdge(Vector2Int _from, out Vector2Int _to)
-        {
-            if (!HasBoundaryEdge(_from))
-            {
-                _to = default;
+            if (_index <= 0 || _index >= _cells.Count - 1)
                 return false;
-            }
 
-            List<Vector2Int> _ends = m_boundaryEdges[_from];
-            _to = _ends[^1];
-            _ends.RemoveAt(_ends.Count - 1);
-
-            return true;
+            return _cells[_index].Coordinate - _cells[_index - 1].Coordinate != _cells[_index + 1].Coordinate - _cells[_index].Coordinate;
         }
 
-        private void AppendRibbon(float _cellSize, float _width, Color _color)
+        private void AppendQuad(Vector3 _center, Vector3 _right, Vector3 _forward, float _size, float _glyph)
         {
-            int _count = m_loop.Count;
-            if (_count < 3)
-                return;
+            float _half = _size * 0.5f;
+            Vector3 _acrossOffset = _right * _half;
+            Vector3 _alongOffset = _forward * _half;
 
             int _baseIndex = m_vertices.Count;
 
-            for (int _i = 0; _i < _count; _i++)
-            {
-                Vector2Int _previous = m_loop[(_i - 1 + _count) % _count];
-                Vector2Int _current = m_loop[_i];
-                Vector2Int _next = m_loop[(_i + 1) % _count];
+            m_vertices.Add(_center - _acrossOffset - _alongOffset);
+            m_vertices.Add(_center + _acrossOffset - _alongOffset);
+            m_vertices.Add(_center + _acrossOffset + _alongOffset);
+            m_vertices.Add(_center - _acrossOffset + _alongOffset);
 
-                Vector2 _inwardFromPrevious = GetInwardNormal(_current - _previous);
-                Vector2 _inwardFromNext = GetInwardNormal(_next - _current);
-                Vector2 _inward = _inwardFromPrevious == _inwardFromNext
-                    ? _inwardFromPrevious
-                    : _inwardFromPrevious + _inwardFromNext;
+            m_uvs.Add(new Vector2(0f, 0f));
+            m_uvs.Add(new Vector2(1f, 0f));
+            m_uvs.Add(new Vector2(1f, 1f));
+            m_uvs.Add(new Vector2(0f, 1f));
 
-                Vector3 _outerPosition = CornerToLocalPosition(_current, _cellSize);
+            Vector2 _glyphData = new Vector2(_glyph, 0f);
+            m_glyphs.Add(_glyphData);
+            m_glyphs.Add(_glyphData);
+            m_glyphs.Add(_glyphData);
+            m_glyphs.Add(_glyphData);
 
-                m_vertices.Add(_outerPosition);
-                m_colors.Add(_color);
-                m_vertices.Add(_outerPosition + new Vector3(_inward.x, 0f, _inward.y) * _width);
-                m_colors.Add(_color);
-            }
+            m_triangles.Add(_baseIndex);
+            m_triangles.Add(_baseIndex + 3);
+            m_triangles.Add(_baseIndex + 2);
 
-            for (int _i = 0; _i < _count; _i++)
-            {
-                int _outer = _baseIndex + _i * 2;
-                int _nextOuter = _baseIndex + (_i + 1) % _count * 2;
-
-                m_triangles.Add(_outer);
-                m_triangles.Add(_nextOuter);
-                m_triangles.Add(_nextOuter + 1);
-
-                m_triangles.Add(_outer);
-                m_triangles.Add(_nextOuter + 1);
-                m_triangles.Add(_outer + 1);
-            }
+            m_triangles.Add(_baseIndex);
+            m_triangles.Add(_baseIndex + 2);
+            m_triangles.Add(_baseIndex + 1);
         }
 
-        private static Vector2 GetInwardNormal(Vector2Int _direction)
+        private static Vector3 CoordinateToLocalPosition(Vector2Int _coordinate, float _cellSize)
         {
-            return new Vector2(-_direction.y, _direction.x);
-        }
-
-        private static Vector3 CornerToLocalPosition(Vector2Int _corner, float _cellSize)
-        {
-            return new Vector3((_corner.x - 0.5f) * _cellSize, 0f, (_corner.y - 0.5f) * _cellSize);
+            return new Vector3(_coordinate.x * _cellSize, 0f, _coordinate.y * _cellSize);
         }
     }
 }

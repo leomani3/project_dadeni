@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e49374582f59be44bb01a46788d2ad20, type: 3}
+  m_Name: EnemySpawnCellHighlight
+  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Grid.CellHighlightStyle
+  m_mode: 0
+  m_fillColor: {r: 0.86, g: 0.03583, b: 0, a: 0.754}
+  m_centerColor: {r: 1, g: 0.06944, b: 0, a: 0.936}
+  m_borderColor: {r: 1, g: 0.175, b: 0.07, a: 0.98}
+  m_borderWidth: 0.05
+  m_gradientPower: 1.6
+  m_cellScale: 0.97
+  m_glyphThickness: 0.12
+  m_glyphRadius: 0.55
+  m_glyphScale: 0.45
+  m_glyphSpacing: 0.4
+  m_highlightCoefficient: 1
+  m_heightOffset: 0.012
+  m_order: 0
+  m_blend: 1
