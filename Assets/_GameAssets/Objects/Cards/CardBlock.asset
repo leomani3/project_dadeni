@@ -10,45 +10,47 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 632f287d3ec204d9b588067fb73a6eed, type: 3}
-  m_Name: CardStrike
+  m_Name: CardBlock
   m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Cards.CardConfig
-  m_id: card.strike
-  m_title: Strike
-  m_type: 0
-  m_illustration: {fileID: 0}
+  m_id: card.block
+  m_title: Block
+  m_type: 1
+  m_illustration: {fileID: 21300000, guid: cb73d8988f813fa46afca32d589f2d8e, type: 3}
   m_castAnimation: {fileID: 7400000, guid: 8bb5f980ab0faa944b787b776aa0c925, type: 2}
   m_cost: 1
   m_exhausts: 0
   m_targetZone:
-    m_shape: 2
-    m_range: {x: 1, y: 2}
-  m_requiresLineOfSight: 1
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_requiresLineOfSight: 0
   m_effectZone:
     m_shape: 0
     m_range: {x: 0, y: 1}
   m_actions:
-  - rid: 1493613253122600001
+  - rid: 3017391413039464558
   m_costUpgraded: 1
   m_exhaustsUpgraded: 0
   m_targetZoneUpgraded:
-    m_shape: 2
-    m_range: {x: 1, y: 2}
-  m_requiresLineOfSightUpgraded: 1
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_requiresLineOfSightUpgraded: 0
   m_effectZoneUpgraded:
     m_shape: 0
     m_range: {x: 0, y: 1}
   m_actionsUpgraded:
-  - rid: 1493613253122600002
+  - rid: 3017391413039464559
   references:
     version: 2
     RefIds:
-    - rid: 1493613253122600001
-      type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+    - rid: 3017391413039464558
+      type: {class: GainBlockCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
       data:
-        m_targetTeams: 2
-        m_damage: 6
-    - rid: 1493613253122600002
-      type: {class: DealDamageCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+        m_targets: 1
+        m_targetTeams: 1
+        m_block: 5
+    - rid: 3017391413039464559
+      type: {class: GainBlockCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
       data:
-        m_targetTeams: 2
-        m_damage: 9
+        m_targets: 1
+        m_targetTeams: 1
+        m_block: 8

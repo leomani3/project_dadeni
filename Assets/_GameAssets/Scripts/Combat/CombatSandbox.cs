@@ -27,14 +27,6 @@ public class CombatSandbox : ScriptableObject
     }
 
     [Serializable]
-    public struct DeckEntry
-    {
-        public CardConfig card;
-        public bool upgraded;
-        [Min(1)] public int copies;
-    }
-
-    [Serializable]
     public struct EnemyEntry
     {
         public Entity prefab;
@@ -44,20 +36,18 @@ public class CombatSandbox : ScriptableObject
     [SerializeField] private bool _bootStraightIntoCombat = true;
     [SerializeField, Required] private CharacterConfig _character;
     [SerializeField] private string _seed = "COMBAT";
-    [SerializeField] private List<DeckEntry> _deck = new List<DeckEntry>();
     [SerializeField] private List<EnemyEntry> _enemies = new List<EnemyEntry>();
 
     public bool BootStraightIntoCombat => _bootStraightIntoCombat;
     public CharacterConfig Character => _character;
     public string Seed => _seed;
-    public IReadOnlyList<DeckEntry> Deck => _deck;
     public IReadOnlyList<EnemyEntry> Enemies => _enemies;
 
     public List<CardInstance> BuildDeck()
     {
         List<CardInstance> _cards = new List<CardInstance>();
 
-        foreach (DeckEntry _entry in _deck)
+        foreach (CharacterConfig.StartingDeckEntry _entry in _character.StartingDeck)
         {
             for (int _copy = 0; _copy < _entry.copies; _copy++)
                 _cards.Add(new CardInstance(_entry.card, _entry.upgraded));
@@ -83,7 +73,7 @@ public class CombatSandbox : ScriptableObject
     {
         List<string> _deckParts = new List<string>();
 
-        foreach (DeckEntry _entry in _deck)
+        foreach (CharacterConfig.StartingDeckEntry _entry in _character.StartingDeck)
             _deckParts.Add($"{_entry.card.Title}{(_entry.upgraded ? "+" : string.Empty)} x{_entry.copies}");
 
         List<string> _enemyParts = new List<string>();
@@ -92,26 +82,6 @@ public class CombatSandbox : ScriptableObject
             _enemyParts.Add($"{_entry.prefab.name} x{_entry.count}");
 
         return $"character={_character.Id} seed={_seed} deck=[{string.Join(", ", _deckParts)}] enemies=[{string.Join(", ", _enemyParts)}]";
-    }
-
-    [Button]
-    private void CopyDeckFromCharacter()
-    {
-        _deck.Clear();
-
-        foreach (CharacterConfig.StartingDeckEntry _entry in _character.StartingDeck)
-            _deck.Add(new DeckEntry { card = _entry.card, upgraded = _entry.upgraded, copies = _entry.copies });
-
-        MarkDirty();
-    }
-
-    [Button]
-    private void SetDeckToSingleCard(CardConfig _card, bool _upgraded, int _copies)
-    {
-        _deck.Clear();
-        _deck.Add(new DeckEntry { card = _card, upgraded = _upgraded, copies = Mathf.Max(1, _copies) });
-
-        MarkDirty();
     }
 
     [Button]

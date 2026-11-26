@@ -19,40 +19,10 @@ MonoBehaviour:
   _prefab: {fileID: 7403663881764562647, guid: d10b2a29585546449a00a0603d583c4f, type: 3}
   _startingGold: 99
   _startingDeck:
-  - card: {fileID: 11400000, guid: 260ec78a940b4f33875702f9f93e5138, type: 2}
+  - card: {fileID: 11400000, guid: a1511020b13e33f6f288e6585a008032, type: 2}
     upgraded: 0
-    copies: 4
-  - card: {fileID: 11400000, guid: 260ec78a940b4f33875702f9f93e5138, type: 2}
-    upgraded: 1
-    copies: 1
-  - card: {fileID: 11400000, guid: 7149be7d3e41457995f4abb41f473d78, type: 2}
+    copies: 5
+  - card: {fileID: 11400000, guid: 72871ada8c1e41ccb3cf2acaa459745f, type: 2}
     upgraded: 0
-    copies: 4
-  - card: {fileID: 11400000, guid: 1cc6998544b8412e8b459b3615c274a3, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: e136924aac1a4b32b4ce81f6d2fcea23, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: caf6e8a7b8024dbc949c385eef24a253, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: 7bf010314fc643d2995e8e0e1b011cd1, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: d6ccaabfc3d441efb69ebda32e210722, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: 66c529d30a8145dabbc814e9139b0193, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: d5f71672e5f04f0f91ca572e7ee95452, type: 2}
-    upgraded: 1
-    copies: 1
-  - card: {fileID: 11400000, guid: 0f48bdd895c1429d8950424bac3c411f, type: 2}
-    upgraded: 0
-    copies: 1
-  - card: {fileID: 11400000, guid: 51f822f87c6149b7862462125d70bd6a, type: 2}
-    upgraded: 0
-    copies: 1
+    copies: 5
   _unlockedByDefault: 1
