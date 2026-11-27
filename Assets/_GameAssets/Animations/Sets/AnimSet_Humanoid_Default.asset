@@ -22,5 +22,7 @@ MonoBehaviour:
   m_casts:
   - style: 1
     move: {fileID: 11400000, guid: 5faf6f04ef396f04d8deabe2946ff5f2, type: 2}
+    speed: 1
   - style: 2
     move: {fileID: 11400000, guid: 15d8e44abe241944ead1d5908a4799e5, type: 2}
+    speed: 1

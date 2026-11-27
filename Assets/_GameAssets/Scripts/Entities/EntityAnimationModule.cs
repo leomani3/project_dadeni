@@ -78,19 +78,19 @@ public class EntityAnimationModule : EntityModule
 
     public IEnumerator PlayCast(CardType _cardType, CastStyle _style, Action<AnimationMove> _onImpact)
     {
-        AnimationMove _move = m_animationSet.GetCastMove(_style, _cardType);
+        AnimationMove _move = m_animationSet.GetCastMove(_style, _cardType, out float _castSpeed);
         bool _isAttack = CharacterAnimationSet.GetBaseStyle(_cardType) == CastStyle.Attack;
         int _stateHash = _isAttack ? CastAttackState : CastUtilityState;
 
         yield return WaitForLocomotion();
 
         m_overrideController[_isAttack ? CastAttackPlaceholderClipName : CastUtilityPlaceholderClipName] = _move.Clip;
-        m_animator.SetFloat(CastSpeedParameter, _move.Speed);
+        m_animator.SetFloat(CastSpeedParameter, _castSpeed);
         m_animator.SetTrigger(_isAttack ? CastAttackTrigger : CastUtilityTrigger);
 
         bool _entered = false;
         bool _impacted = false;
-        float _safetyTimeout = _move.Duration + CompletionSafetyMargin;
+        float _safetyTimeout = _move.Clip.length / _castSpeed + CompletionSafetyMargin;
         float _elapsed = 0f;
 
         while (_elapsed < _safetyTimeout)

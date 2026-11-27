@@ -17,8 +17,12 @@ MonoBehaviour:
   m_idleSpeed: 1
   m_run: {fileID: 7400000, guid: 9d71fb32f64efb44da5c609835484db6, type: 2}
   m_runSpeed: 1
-  m_death: {fileID: 0}
+  m_death: {fileID: 7400000, guid: b613000e3692df142b37e58b11a66b3b, type: 2}
   m_deathSpeed: 1
   m_casts:
   - style: 1
     move: {fileID: 11400000, guid: a75719566aeae7e4e83731febeebc0e8, type: 2}
+    speed: 3
+  - style: 2
+    move: {fileID: 0}
+    speed: 4

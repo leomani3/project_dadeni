@@ -18,7 +18,8 @@ MonoBehaviour:
   m_run: {fileID: 7400000, guid: 808101532f3901a4889a1453ffcc0467, type: 2}
   m_runSpeed: 1
   m_death: {fileID: 7400000, guid: 1a3d685c879ef944ba3e1f815dbe71ec, type: 2}
-  m_deathSpeed: 1
+  m_deathSpeed: 2
   m_casts:
   - style: 2
     move: {fileID: 11400000, guid: aafb5a1c648ab394caaf9f77729b0e80, type: 2}
+    speed: 1

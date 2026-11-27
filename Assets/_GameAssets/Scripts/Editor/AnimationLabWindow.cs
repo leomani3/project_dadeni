@@ -17,7 +17,7 @@ namespace Deckbuilder.EditorTools
         private const float SidebarWidth = 300f;
         private const float ToolbarHeight = 22f;
         private const float TimelineHeight = 62f;
-        private const float DetailsHeight = 132f;
+        private const float DetailsHeight = 210f;
         private const float FrontYaw = 180f;
         private const float FrontPitch = 12f;
         private const float GameYaw = 45f;
@@ -46,12 +46,12 @@ namespace Deckbuilder.EditorTools
             public string label;
             public string clipProperty;
             public AnimationClip clip;
-            public float clipSpeed = 1f;
+            public float speed = 1f;
             public AnimationMove move;
             public CharacterAnimationSet owner;
 
             public AnimationClip PreviewClip => kind == SlotKind.Cast ? (move != null ? move.Clip : null) : clip;
-            public float Speed => kind == SlotKind.Cast ? (move != null ? move.Speed : 1f) : clipSpeed;
+            public float Speed => speed;
             public string SpeedProperty => clipProperty + "Speed";
         }
 
@@ -89,7 +89,7 @@ namespace Deckbuilder.EditorTools
         {
             AnimationLabWindow _window = GetWindow<AnimationLabWindow>();
             _window.titleContent = new GUIContent("Animation Lab");
-            _window.minSize = new Vector2(760f, 520f);
+            _window.minSize = new Vector2(760f, 600f);
             _window.Show();
         }
 
@@ -179,8 +179,8 @@ namespace Deckbuilder.EditorTools
                     if (!_styles.Add(_style))
                         _problems.Add($"{_set.name}: '{(CastStyle)_style}' is listed more than once.");
 
-                    if (_entry.FindPropertyRelative("move").objectReferenceValue == null)
-                        _problems.Add($"{_set.name}: '{(CastStyle)_style}' has no move assigned.");
+                    if (_entry.FindPropertyRelative("speed").floatValue <= 0f)
+                        _problems.Add($"{_set.name}: '{(CastStyle)_style}' has a speed of zero or less.");
                 }
             }
 
@@ -272,6 +272,8 @@ namespace Deckbuilder.EditorTools
 
         private void SelectSlot(int _index)
         {
+            GUI.FocusControl(null);
+            GUIUtility.keyboardControl = 0;
             m_selectedSlot = _index;
             Slot _slot = SelectedSlot();
             m_time = _slot != null && _slot.move != null ? _slot.move.ImpactTime * _slot.move.Clip.length : 0f;
@@ -302,6 +304,7 @@ namespace Deckbuilder.EditorTools
 
                 Slot _slot = new Slot { kind = SlotKind.Cast, style = _style, label = _style.ToString() };
                 m_entity.AnimationSet.TryFindCastMove(_style, out _slot.move, out _slot.owner);
+                _slot.speed = m_entity.AnimationSet.GetCastSpeed(_style);
                 m_slots.Add(_slot);
             }
         }
@@ -309,6 +312,7 @@ namespace Deckbuilder.EditorTools
         private void AddClipSlot(SlotKind _kind, string _label, string _clipProperty)
         {
             Slot _slot = new Slot { kind = _kind, label = _label, clipProperty = _clipProperty };
+            _slot.speed = new SerializedObject(m_entity.AnimationSet).FindProperty(_slot.SpeedProperty).floatValue;
 
             for (CharacterAnimationSet _set = m_entity.AnimationSet; _set != null; _set = _set.Parent)
             {
@@ -319,7 +323,6 @@ namespace Deckbuilder.EditorTools
                     continue;
 
                 _slot.clip = _clip;
-                _slot.clipSpeed = _serialized.FindProperty(_slot.SpeedProperty).floatValue;
                 _slot.owner = _set;
                 break;
             }
@@ -865,16 +868,25 @@ namespace Deckbuilder.EditorTools
         private void DrawClipDetails(Slot _slot, CharacterAnimationSet _ownSet)
         {
             AnimationClip _clip = (AnimationClip)EditorGUILayout.ObjectField(_slot.label, _slot.clip, typeof(AnimationClip), false);
-            float _speed = Mathf.Max(0.05f, EditorGUILayout.DelayedFloatField(new GUIContent("Speed", "Playback speed of this clip. It belongs with the clip, so changing an inherited slot's speed copies the clip into this character's set too."), _slot.clipSpeed));
+            float _speed = DrawSpeedField(_slot, _ownSet);
 
-            if (_clip == _slot.clip && Mathf.Approximately(_speed, _slot.clipSpeed))
+            if (_clip == _slot.clip && Mathf.Approximately(_speed, _slot.speed))
                 return;
 
             SerializedObject _serialized = new SerializedObject(_ownSet);
-            _serialized.FindProperty(_slot.clipProperty).objectReferenceValue = _clip;
+
+            if (_clip != _slot.clip)
+                _serialized.FindProperty(_slot.clipProperty).objectReferenceValue = _clip;
+
             _serialized.FindProperty(_slot.SpeedProperty).floatValue = _speed;
             _serialized.ApplyModifiedProperties();
             BuildSlots();
+        }
+
+        private static float DrawSpeedField(Slot _slot, CharacterAnimationSet _ownSet)
+        {
+            GUIContent _label = new GUIContent($"Speed ({_ownSet.name})", "Playback speed for this character only. Speeds are never inherited and never shared, so changing it here affects no other character.");
+            return Mathf.Max(0.05f, EditorGUILayout.FloatField(_label, _slot.speed));
         }
 
         private void DrawMoveDetails(Slot _slot, CharacterAnimationSet _ownSet)
@@ -896,10 +908,15 @@ namespace Deckbuilder.EditorTools
                 return;
             }
 
+            float _speed = DrawSpeedField(_slot, _ownSet);
+
+            if (!Mathf.Approximately(_speed, _slot.speed))
+                SetCastEntry(_ownSet, _slot.style, _entry => _entry.FindPropertyRelative("speed").floatValue = _speed);
+
             SerializedObject _serialized = new SerializedObject(_slot.move);
+            EditorGUILayout.LabelField($"{_slot.move.name} is shared: its clip, impact and delivery apply to every character using it.", EditorStyles.miniLabel);
             EditorGUILayout.PropertyField(_serialized.FindProperty("m_clip"));
             EditorGUILayout.Slider(_serialized.FindProperty("m_impactTime"), 0f, 1f, new GUIContent("Impact (normalized)"));
-            EditorGUILayout.PropertyField(_serialized.FindProperty("m_speed"));
             EditorGUILayout.PropertyField(_serialized.FindProperty("m_delivery"));
             EditorGUILayout.PropertyField(_serialized.FindProperty("m_projectile"));
 
@@ -924,6 +941,11 @@ namespace Deckbuilder.EditorTools
 
         private void AssignMove(CharacterAnimationSet _set, CastStyle _style, AnimationMove _move)
         {
+            SetCastEntry(_set, _style, _entry => _entry.FindPropertyRelative("move").objectReferenceValue = _move);
+        }
+
+        private void SetCastEntry(CharacterAnimationSet _set, CastStyle _style, Action<SerializedProperty> _edit)
+        {
             SerializedObject _serialized = new SerializedObject(_set);
             SerializedProperty _casts = _serialized.FindProperty("m_casts");
             int _index = -1;
@@ -934,23 +956,22 @@ namespace Deckbuilder.EditorTools
                     _index = _i;
             }
 
-            if (_move == null)
+            if (_index < 0)
             {
-                if (_index >= 0)
-                    _casts.DeleteArrayElementAtIndex(_index);
-            }
-            else
-            {
-                if (_index < 0)
-                {
-                    _index = _casts.arraySize;
-                    _casts.InsertArrayElementAtIndex(_index);
-                }
+                _index = _casts.arraySize;
+                _casts.InsertArrayElementAtIndex(_index);
 
-                SerializedProperty _entry = _casts.GetArrayElementAtIndex(_index);
-                _entry.FindPropertyRelative("style").intValue = (int)_style;
-                _entry.FindPropertyRelative("move").objectReferenceValue = _move;
+                SerializedProperty _created = _casts.GetArrayElementAtIndex(_index);
+                _created.FindPropertyRelative("style").intValue = (int)_style;
+                _created.FindPropertyRelative("move").objectReferenceValue = null;
+                _created.FindPropertyRelative("speed").floatValue = 1f;
             }
+
+            SerializedProperty _entry = _casts.GetArrayElementAtIndex(_index);
+            _edit(_entry);
+
+            if (_entry.FindPropertyRelative("move").objectReferenceValue == null && Mathf.Approximately(_entry.FindPropertyRelative("speed").floatValue, 1f))
+                _casts.DeleteArrayElementAtIndex(_index);
 
             _serialized.ApplyModifiedProperties();
             BuildSlots();
@@ -971,7 +992,6 @@ namespace Deckbuilder.EditorTools
                 SerializedObject _serialized = new SerializedObject(_move);
                 _serialized.FindProperty("m_clip").objectReferenceValue = _slot.move.Clip;
                 _serialized.FindProperty("m_impactTime").floatValue = _slot.move.ImpactTime;
-                _serialized.FindProperty("m_speed").floatValue = _slot.move.Speed;
                 _serialized.FindProperty("m_delivery").intValue = (int)_slot.move.Delivery;
                 _serialized.FindProperty("m_projectile").objectReferenceValue = _slot.move.Projectile;
                 _serialized.ApplyModifiedPropertiesWithoutUndo();
