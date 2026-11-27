@@ -14,6 +14,8 @@ public class CanvasHandler : MonoBehaviour
     private bool m_isClosing;
     private bool m_isOpen;
 
+    public bool IsOpen => m_isOpen;
+
     public virtual void Init()
     {
         m_containers = GetComponentsInChildren<UIContainer>(true);

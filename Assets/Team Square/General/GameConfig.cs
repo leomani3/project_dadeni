@@ -54,8 +54,11 @@ public class GameConfig : ScriptableObject
         public bool developmentBuild;
     }
 
+    [System.Serializable]
     public class UISettings
     {
+        public Color shieldColor = new Color(0.24f, 0.56f, 1f, 1f);
+
         [Space(10)]
         public bool bounceOnClick = true;
         public float clickScaleDuration = 0.07f;

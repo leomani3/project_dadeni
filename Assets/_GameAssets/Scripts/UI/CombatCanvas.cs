@@ -5,6 +5,7 @@ using DG.Tweening;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CombatCanvas : CanvasHandler
 {
@@ -38,6 +39,17 @@ public class CombatCanvas : CanvasHandler
         _endCombatButton.onClick += HandleEndCombatButtonClicked;
         _lockPlacementButton.onClick += HandleLockPlacementButtonClicked;
         _deckView.onUnaffordableCardRejected += HandleUnaffordableCardRejected;
+    }
+
+    private void Update()
+    {
+        if (!IsOpen || Keyboard.current == null || !Keyboard.current.spaceKey.wasPressedThisFrame)
+            return;
+
+        CustomButton _spaceButton = _lockPlacementButton.gameObject.activeInHierarchy ? _lockPlacementButton : _endTurnButton;
+
+        if (_spaceButton.gameObject.activeInHierarchy)
+            _spaceButton.Press();
     }
 
     public void ShowNotEnoughActionPoints()

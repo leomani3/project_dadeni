@@ -152,18 +152,30 @@ public class CustomButton : AUIElement, IPointerClickHandler, IPointerEnterHandl
         // this.Log($"on click index {m_index}. invo: {onClick?.GetInvocationList()[0]}");
         if (eventData.button != PointerEventData.InputButton.Left) return;
 
+        TryClick();
+    }
+
+    public void Press()
+    {
+        if (TryClick())
+            ClickBounce();
+    }
+
+    private bool TryClick()
+    {
         if (!m_button.interactable)
-            return;
+            return false;
 
         if (m_isLocked)
         {
             LockedClickBounce();
             PlayNegativeClickSound();
-            return;
+            return false;
         }
 
         onClick?.Invoke(m_index);
         PlayClickSound();
+        return true;
     }
 
     public virtual void OnPointerEnter(PointerEventData eventData)
