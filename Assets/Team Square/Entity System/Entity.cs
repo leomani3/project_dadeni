@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lean.Pool;
 using UnityEngine;
 
-public class Entity : MonoBehaviour, IPoolable
+public class Entity : MonoBehaviour
 {
     public Action<Entity> onFightQuery;
 
-    [SerializeField] private Animator _animator;
     [SerializeField] private Collider _collider;
     [SerializeField] private EntityType _entityType;
 
     private readonly Dictionary<Type, EntityModule> _modulesByType = new Dictionary<Type, EntityModule>();
-    private bool _modulesInitialized;
 
     public EntityType EntityType => _entityType;
-    public Animator Animator => _animator;
     public Collider Collider => _collider;
     public bool IsTakingTurn { get; private set; }
 
@@ -32,23 +28,6 @@ public class Entity : MonoBehaviour, IPoolable
         return false;
     }
 
-    public void OnSpawn()
-    {
-        InitializeModules();
-        RegisterInEntityManager();
-    }
-
-    public void OnDespawn()
-    {
-        RemoveFromEntityManager();
-
-        foreach (var module in _modulesByType.Values.Distinct())
-            module.Cleanup();
-
-        _modulesInitialized = false;
-        IsTakingTurn = false;
-    }
-
     public void Despawn()
     {
         if (TryGetModule(out EntityHealthModule healthModule))
@@ -57,12 +36,16 @@ public class Entity : MonoBehaviour, IPoolable
             healthModule.OnDeath -= Despawn;
         }
 
-        LeanPool.Despawn(this);
+        RemoveFromEntityManager();
+
+        foreach (var module in _modulesByType.Values.Distinct())
+            module.Cleanup();
+
+        Destroy(gameObject);
     }
 
     private void Reset()
     {
-        _animator = GetComponentInChildren<Animator>();
         _collider = GetComponent<Collider>();
     }
 
@@ -74,15 +57,11 @@ public class Entity : MonoBehaviour, IPoolable
 
     private void OnDestroy()
     {
-        RemoveFromEntityManager();
+        EntityManager.Instance?.Unregister(this, notifyListeners: false);
     }
 
     private void InitializeModules()
     {
-        if (_modulesInitialized) return;
-
-        _modulesInitialized = true;
-
         var modules = GetComponents<EntityModule>();
         foreach (var module in modules)
         {

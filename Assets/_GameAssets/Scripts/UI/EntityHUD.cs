@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using Deckbuilder.StatusEffects;
 using DG.Tweening;
-using Lean.Pool;
 using TMPro;
 using UnityEngine;
 
 [RequireComponent(typeof(CanvasGroup))]
-public class EntityHUD : MonoBehaviour, IPoolable
+public class EntityHUD : MonoBehaviour
 {
     [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private GenericGauge _healthBar;
@@ -22,6 +21,12 @@ public class EntityHUD : MonoBehaviour, IPoolable
     private void Reset()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
+    }
+
+    private void Awake()
+    {
+        _canvasGroup.alpha = 0f;
+        _fadeTween = _canvasGroup.DOFade(1f, _fadeInDuration);
     }
 
     private void LateUpdate()
@@ -59,7 +64,7 @@ public class EntityHUD : MonoBehaviour, IPoolable
 
         if (!_statusEffectDisplays.TryGetValue(type, out StatusEffectDisplay display))
         {
-            display = LeanPool.Spawn(_statusEffectDisplayPrefab, _statusEffectContainer);
+            display = Instantiate(_statusEffectDisplayPrefab, _statusEffectContainer);
             _statusEffectDisplays.Add(type, display);
         }
 
@@ -69,7 +74,7 @@ public class EntityHUD : MonoBehaviour, IPoolable
     public void RemoveStatusEffect(StatusEffect statusEffect)
     {
         if (_statusEffectDisplays.Remove(statusEffect.Config.Type, out StatusEffectDisplay display))
-            LeanPool.Despawn(display);
+            Destroy(display.gameObject);
     }
 
     public void SetHidden(bool _isHidden)
@@ -80,26 +85,6 @@ public class EntityHUD : MonoBehaviour, IPoolable
             _canvasGroup.alpha = 0f;
         else
             _fadeTween = _canvasGroup.DOFade(1f, _fadeInDuration);
-    }
-
-    public void OnSpawn()
-    {
-        _fadeTween?.Kill();
-        _canvasGroup.alpha = 0f;
-        _fadeTween = _canvasGroup.DOFade(1f, _fadeInDuration);
-    }
-
-    public void OnDespawn()
-    {
-        _fadeTween?.Kill();
-        _healthBar.StopFeedback();
-
-        foreach (StatusEffectDisplay display in _statusEffectDisplays.Values)
-            if (display.gameObject.activeSelf)
-                LeanPool.Despawn(display);
-
-        _statusEffectDisplays.Clear();
-        _target = null;
     }
 
     private void FollowTarget()

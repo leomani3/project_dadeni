@@ -1,5 +1,4 @@
 ﻿using Deckbuilder.StatusEffects;
-using Lean.Pool;
 using UnityEngine;
 
 [RequireComponent(typeof(EntityHealthModule))]
@@ -57,14 +56,13 @@ public class EntityHUDModule : EntityModule
 
     private void OnDestroy()
     {
-        if (_hud != null)
-            Destroy(_hud.gameObject);
+        DespawnHUD();
     }
 
     private void SpawnHUD()
     {
         Transform canvasTransform = UIManager.Instance.GetCanvas<RunCanvas>().transform;
-        _hud = LeanPool.Spawn(_hudPrefab, canvasTransform);
+        _hud = Instantiate(_hudPrefab, canvasTransform);
         _hud.Setup(_hudAnchor, _healthModule.MaxHealth, _healthModule.MaxHealth, _healthModule.Block);
     }
 
@@ -72,9 +70,7 @@ public class EntityHUDModule : EntityModule
     {
         if (_hud == null) return;
 
-        if (_hud.gameObject.activeSelf)
-            LeanPool.Despawn(_hud);
-
+        Destroy(_hud.gameObject);
         _hud = null;
     }
 

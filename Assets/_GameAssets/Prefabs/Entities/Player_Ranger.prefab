@@ -141,35 +141,15 @@ PrefabInstance:
     - target: {fileID: 6921279407020161022, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 22100000, guid: 5f9df6225111e294a909c4f05dc2d244, type: 2}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -4361254235543792588, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2585293682544024923}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2238531059205498265}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
---- !u!1 &2310645624862675858 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
-  m_PrefabInstance: {fileID: 3229193246014779075}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2238531059205498265
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2310645624862675858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb9ec908d38f7a8c1d5d32b8cb07fe00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityAE
 --- !u!4 &3124054862957922600 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 93dcf3e1d678002459f1bc4d482228d5, type: 3}
@@ -245,6 +225,10 @@ PrefabInstance:
       propertyPath: m_animator
       value: 
       objectReference: {fileID: 5538641213909145917}
+    - target: {fileID: 2000000000009999999, guid: ebe3339144cd241aad3caa8b52e69705, type: 3}
+      propertyPath: m_animationSet
+      value: 
+      objectReference: {fileID: 11400000, guid: 96d1e606204d14140a15dbb4daba201c, type: 2}
     - target: {fileID: 2000000000013333332, guid: ebe3339144cd241aad3caa8b52e69705, type: 3}
       propertyPath: m_LocalScale.x
       value: 1

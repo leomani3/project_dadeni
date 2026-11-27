@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using Deckbuilder.Actions;
 using Deckbuilder.Cards;
 using Deckbuilder.Grid;
-using Lean.Pool;
-using Pinpin;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -189,22 +187,10 @@ namespace Deckbuilder.Combat
 
         public Entity SpawnEntity(Entity _entityPrefab, GridCell _cell)
         {
-            EnsurePoolExists(_entityPrefab.gameObject);
-
-            Entity _entity = LeanPool.Spawn(_entityPrefab, _cell.transform.position, _cell.transform.rotation);
+            Entity _entity = Instantiate(_entityPrefab, _cell.transform.position, _cell.transform.rotation);
             PlaceOnCell(_entity, _cell);
 
             return _entity;
-        }
-
-        private static void EnsurePoolExists(GameObject _prefab)
-        {
-            ACommonPool _pool = null;
-
-            if (ACommonPool.TryFindPoolByPrefab(_prefab, ref _pool))
-                return;
-
-            new GameObject($"LeanPool ({_prefab.name})").AddComponent<LeanGameObjectPool>().Prefab = _prefab;
         }
 
         private void StartPlacement()

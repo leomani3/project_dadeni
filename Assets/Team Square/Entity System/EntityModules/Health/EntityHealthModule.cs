@@ -2,7 +2,6 @@
 using System.Collections;
 using Deckbuilder.StatusEffects;
 using DG.Tweening;
-using Lean.Pool;
 using Stats;
 using UnityEngine;
 using Utils;
@@ -17,14 +16,13 @@ public class EntityHealthModule : EntityModule
     public Action OnDeath;
 
     [SerializeField] private ParticleSystem _deathVFXPrefab;
+    [SerializeField, Min(0f)] private float _deathVFXLifetime = 3f;
     [SerializeField] private Vector3 _damagePunchScale = new Vector3(0.3f, -0.2f, 0f);
     [SerializeField, Min(0f)] private float _damagePunchDuration = 0.35f;
     [SerializeField, Min(1)] private int _damagePunchVibrato = 6;
     [SerializeField, Range(0f, 1f)] private float _damagePunchElasticity = 0.5f;
     [SerializeField] private SoundKeys _damageSound = SoundKeys._None;
     [SerializeField] private SoundKeys _deathSound = SoundKeys._None;
-    [SerializeField] private string _deathAnimationState = "Death";
-    [SerializeField, Min(0f)] private float _despawnDelayAfterDeath = 5f;
     [SerializeField] private float _maxHealthFallbackWithoutStatModule = 100f;
 
     private float _currentHealth;
@@ -33,6 +31,7 @@ public class EntityHealthModule : EntityModule
     private Tween _damagePunchTween;
     protected EntityStatModule _statModule;
     protected StatusEffectModule _statusEffectModule;
+    private EntityAnimationModule _animationModule;
 
     public bool IsDead => _isDead;
     public float CurrentHealth => _currentHealth;
@@ -61,6 +60,9 @@ public class EntityHealthModule : EntityModule
         base.OnAllModuleInitialized();
         Owner.TryGetModule(out _statModule);
         Owner.TryGetModule(out _statusEffectModule);
+
+        if (!Owner.TryGetModule(out _animationModule))
+            throw new MissingComponentException($"{Owner.name} has an EntityHealthModule but no EntityAnimationModule to play its death.");
         _currentHealth = MaxHealth;
     }
 
@@ -190,7 +192,7 @@ public class EntityHealthModule : EntityModule
         _damagePunchTween?.Kill(complete: true);
 
         if (_deathVFXPrefab != null)
-            LeanPool.Spawn(_deathVFXPrefab, transform.position, Quaternion.identity);
+            Destroy(Instantiate(_deathVFXPrefab, transform.position, Quaternion.identity).gameObject, _deathVFXLifetime);
 
         if (_deathSound != SoundKeys._None)
             SoundManager.Instance?.PlaySound(_deathSound);
@@ -212,10 +214,7 @@ public class EntityHealthModule : EntityModule
 
     private IEnumerator PlayDeathAnimationThenNotify()
     {
-        if (Owner.Animator != null && !string.IsNullOrEmpty(_deathAnimationState))
-            Owner.Animator.Play(_deathAnimationState);
-
-        yield return new WaitForSeconds(_despawnDelayAfterDeath);
+        yield return _animationModule.PlayDeath();
 
         OnDeath?.Invoke();
     }

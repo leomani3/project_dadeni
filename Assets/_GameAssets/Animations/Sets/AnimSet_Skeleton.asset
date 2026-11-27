@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce4fe6c04aa173a4c82db229abd72879, type: 3}
+  m_Name: AnimSet_Skeleton
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAnimationSet
+  m_parent: {fileID: 11400000, guid: 5fa70fd253e376d42ae658fe7e7a61dc, type: 2}
+  m_idle: {fileID: 7400000, guid: 0def9db9006178e48a1dd8f81796a5c3, type: 2}
+  m_idleSpeed: 1
+  m_run: {fileID: 7400000, guid: 808101532f3901a4889a1453ffcc0467, type: 2}
+  m_runSpeed: 1
+  m_death: {fileID: 7400000, guid: 1a3d685c879ef944ba3e1f815dbe71ec, type: 2}
+  m_deathSpeed: 1
+  m_casts:
+  - style: 2
+    move: {fileID: 11400000, guid: aafb5a1c648ab394caaf9f77729b0e80, type: 2}

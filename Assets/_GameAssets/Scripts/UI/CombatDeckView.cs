@@ -113,16 +113,7 @@ public class CombatDeckView : MonoBehaviour
 
     public void Unbind()
     {
-        if (_deck != null)
-        {
-            foreach (CardPile _pile in EnumeratePiles())
-            {
-                _pile.onCardAdded -= HandleCardAdded;
-                _pile.onCardRemoved -= HandleCardRemoved;
-            }
-
-            _deck = null;
-        }
+        UnsubscribeFromDeck();
 
         foreach (Card _view in _handViews.Values)
             DespawnCardView(_view);
@@ -179,7 +170,21 @@ public class CombatDeckView : MonoBehaviour
 
     private void OnDestroy()
     {
-        Unbind();
+        UnsubscribeFromDeck();
+    }
+
+    private void UnsubscribeFromDeck()
+    {
+        if (_deck == null)
+            return;
+
+        foreach (CardPile _pile in EnumeratePiles())
+        {
+            _pile.onCardAdded -= HandleCardAdded;
+            _pile.onCardRemoved -= HandleCardRemoved;
+        }
+
+        _deck = null;
     }
 
     private void Update()

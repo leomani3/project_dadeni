@@ -38,7 +38,7 @@ public class EntityManager : Singleton<EntityManager>
         onEntityRegistered?.Invoke(entity);
     }
 
-    internal void Unregister(Entity entity)
+    internal void Unregister(Entity entity, bool notifyListeners = true)
     {
         if (entity == null || !_entities.Remove(entity)) return;
 
@@ -48,6 +48,7 @@ public class EntityManager : Singleton<EntityManager>
         if (entity.TryGetModule(out EntityTeamModule teamModule) && teamModule.Team == Team.Enemy)
             _enemies.Remove(entity);
 
-        onEntityUnregistered?.Invoke(entity);
+        if (notifyListeners)
+            onEntityUnregistered?.Invoke(entity);
     }
 }

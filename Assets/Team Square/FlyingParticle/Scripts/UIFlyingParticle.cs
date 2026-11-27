@@ -4,7 +4,7 @@ using AssetKits.ParticleImage;
 using Lean.Pool;
 using UnityEngine;
 
-public class UIFlyingParticle : MonoBehaviour
+public class UIFlyingParticle : MonoBehaviour, IPoolable
 {
     [SerializeField] private ParticleImage particleImage;
     [SerializeField] private float logBase = 10f;
@@ -12,9 +12,12 @@ public class UIFlyingParticle : MonoBehaviour
     [SerializeField] private float burstInterval = .1f;
 
     private Action _onFirstParticleArrivedCallback;
+    private int _burstGeneration;
 
     public async void Initialize(Transform target, Sprite sprite, float duration, Action callback = null, double burstCount = 1)
     {
+        int generation = ++_burstGeneration;
+
         particleImage.Stop();
         particleImage.particles.Clear();
 
@@ -31,9 +34,24 @@ public class UIFlyingParticle : MonoBehaviour
 
         for (int i = 0; i < scaledBurstCount; i++)
         {
+            if (this == null || generation != _burstGeneration)
+                return;
+
             particleImage.Play();
             await Task.Delay((int)(burstInterval * 1000));
         }
+    }
+
+    public void OnSpawn()
+    {
+    }
+
+    public void OnDespawn()
+    {
+        _burstGeneration++;
+        _onFirstParticleArrivedCallback = null;
+        particleImage.Stop();
+        particleImage.particles.Clear();
     }
 
     public void OnFirstParticleArrived()

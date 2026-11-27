@@ -15,6 +15,12 @@ namespace Lean.Pool
 		/// <summary>When you spawn a prefab from this class, the association between the spawned clone and the pool that spawned it will be stored here so it can quickly be despawned.</summary>
 		public static Dictionary<GameObject, ACommonPool> Links = new Dictionary<GameObject, ACommonPool>();
 
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			Links.Clear();
+		}
+
 		/// <summary>This allows you to spawn a prefab via Component.</summary>
 		public static T Spawn<T>(T prefab, Transform parent, bool worldPositionStays = false)
 			where T : Component
@@ -82,7 +88,6 @@ namespace Lean.Pool
 				// Create a new pool for this prefab?
 				if (ACommonPool.TryFindPoolByPrefab(prefab, ref pool) == false)
 				{
-					Debug.LogError("Pool not found for prefab " + prefab.name + ". Creating a new LeanGameObjectPool.");
 					pool = new GameObject("LeanPool (" + prefab.name + ")").AddComponent<LeanGameObjectPool>();
 
 					pool.SetPrefab(prefab);
@@ -173,14 +178,7 @@ namespace Lean.Pool
 							return;
 						}
 #endif
-						if (delay > 0.0f)
-						{
-							Object.Destroy(clone);
-						}
-						else
-						{
-							Object.Destroy(clone, delay);
-						}
+						Object.Destroy(clone, delay);
 					}
 				}
 			}

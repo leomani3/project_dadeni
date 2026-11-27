@@ -11,7 +11,7 @@ namespace Deckbuilder.Cards
         [SerializeField] private string m_title;
         [SerializeField] private CardType m_type;
         [SerializeField] private Sprite m_illustration;
-        [SerializeField] private AnimationClip m_castAnimation;
+        [SerializeField] private CastStyle m_castStyle;
 
         [SerializeField, Min(0)] private int m_cost;
         [SerializeField] private bool m_exhausts;
@@ -31,7 +31,7 @@ namespace Deckbuilder.Cards
         public string Title => m_title;
         public CardType Type => m_type;
         public Sprite Illustration => m_illustration;
-        public AnimationClip CastAnimation => m_castAnimation;
+        public CastStyle CastStyle => m_castStyle;
 
         public int GetCost(bool _upgraded)
         {

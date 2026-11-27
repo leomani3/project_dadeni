@@ -8,6 +8,21 @@ namespace Deckbuilder.Cards.Actions
         public abstract string DescriptionFormat { get; }
         public abstract object[] DescriptionValues { get; }
 
-        public abstract void Execute(CardActionContext _context);
+        public virtual void ApplyToCaster(CardActionContext _context)
+        {
+        }
+
+        public virtual void ApplyToTargetCell(CardActionContext _context)
+        {
+        }
+
+        public virtual bool Affects(Entity _entity)
+        {
+            return false;
+        }
+
+        public virtual void ApplyToEntity(Entity _entity, CardActionContext _context)
+        {
+        }
     }
 }

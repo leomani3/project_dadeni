@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_animator
       value: 
       objectReference: {fileID: 8152540462247576308}
+    - target: {fileID: 3000000000009999999, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
+      propertyPath: m_animationSet
+      value: 
+      objectReference: {fileID: 11400000, guid: a480322276e1b654fb49c27a31464e26, type: 2}
     - target: {fileID: 3000000000012222221, guid: d8aca5690e49613b9b7d251c1382cb7f, type: 3}
       propertyPath: m_Layer
       value: 7
@@ -272,7 +276,7 @@ PrefabInstance:
     - target: {fileID: 5197997858216285447, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 22100000, guid: d03fd26b92f955d48a22fba0331c4289, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 6041330210177057777, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
       propertyPath: m_Layer
       value: 7
@@ -304,28 +308,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 9092806791548801070}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
---- !u!1 &3873150697322064546 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9f420f69127f3154b910d132621cbaae, type: 3}
-  m_PrefabInstance: {fileID: 4107665319340611571}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &9092806791548801070
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3873150697322064546}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb9ec908d38f7a8c1d5d32b8cb07fe00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EntityAE
 --- !u!4 &4506945051649142808 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9f420f69127f3154b910d132621cbaae, type: 3}

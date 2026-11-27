@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Lean.Pool;
 using UnityEngine;
 using Utils;
 
@@ -40,7 +39,7 @@ public class EntityGroup : MonoBehaviour
 
     private Entity Spawn(Entity _entityPrefab)
     {
-        Entity _entity = LeanPool.Spawn(_entityPrefab, GetFreeSpawnPosition(), CusRandom.Rotation(RotationAxis.Y), transform);
+        Entity _entity = Instantiate(_entityPrefab, GetFreeSpawnPosition(), CusRandom.Rotation(RotationAxis.Y), transform);
         _entity.onFightQuery += OnEntityFightQuery;
 
         Action _deathHandler = () => Forget(_entity);

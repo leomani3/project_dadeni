@@ -13,7 +13,7 @@ namespace Deckbuilder.Cards.Actions
         public override string DescriptionFormat => "Summon {0}";
         public override object[] DescriptionValues => new object[] { m_entityPrefab.name };
 
-        public override void Execute(CardActionContext _context)
+        public override void ApplyToTargetCell(CardActionContext _context)
         {
             if (_context.TargetCell.IsOccupied)
             {
