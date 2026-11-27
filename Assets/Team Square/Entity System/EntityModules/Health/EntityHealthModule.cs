@@ -2,6 +2,7 @@
 using System.Collections;
 using Deckbuilder.StatusEffects;
 using DG.Tweening;
+using Sirenix.OdinInspector;
 using Stats;
 using UnityEngine;
 using Utils;
@@ -15,12 +16,17 @@ public class EntityHealthModule : EntityModule
     public Action OnDeathStart;
     public Action OnDeath;
 
-    [SerializeField] private ParticleSystem _deathVFXPrefab;
+    [SerializeField, Required] private ParticleSystem _deathVFXPrefab;
     [SerializeField, Min(0f)] private float _deathVFXLifetime = 3f;
+    [SerializeField, Min(0f)] private float _deathVanishDelay = 0.2f;
+    [SerializeField, Min(0f)] private float _deathVanishDuration = 0.35f;
+    [SerializeField, Min(0f)] private float _deathVanishSinkDepth = 0.8f;
+    [SerializeField, Range(0f, 1f)] private float _deathVanishEndScale = 0.5f;
+    [SerializeField] private Ease _deathVanishEase = Ease.InCubic;
     [SerializeField] private Vector3 _damagePunchScale = new Vector3(0.3f, -0.2f, 0f);
-    [SerializeField, Min(0f)] private float _damagePunchDuration = 0.35f;
+    [SerializeField, Min(0f)] private float _damagePunchDuration = 0.15f;
     [SerializeField, Min(1)] private int _damagePunchVibrato = 6;
-    [SerializeField, Range(0f, 1f)] private float _damagePunchElasticity = 0.5f;
+    [SerializeField, Range(0f, 1f)] private float _damagePunchElasticity = 0.2f;
     [SerializeField] private SoundKeys _damageSound = SoundKeys._None;
     [SerializeField] private SoundKeys _deathSound = SoundKeys._None;
     [SerializeField] private float _maxHealthFallbackWithoutStatModule = 100f;
@@ -191,9 +197,6 @@ public class EntityHealthModule : EntityModule
 
         _damagePunchTween?.Kill(complete: true);
 
-        if (_deathVFXPrefab != null)
-            Destroy(Instantiate(_deathVFXPrefab, transform.position, Quaternion.identity).gameObject, _deathVFXLifetime);
-
         if (_deathSound != SoundKeys._None)
             SoundManager.Instance?.PlaySound(_deathSound);
 
@@ -215,7 +218,35 @@ public class EntityHealthModule : EntityModule
     private IEnumerator PlayDeathAnimationThenNotify()
     {
         yield return _animationModule.PlayDeath();
+        yield return PlayDeathVanish();
 
         OnDeath?.Invoke();
+    }
+
+    private IEnumerator PlayDeathVanish()
+    {
+        Transform model = _animationModule.Animator.transform;
+        Vector3 bodyPosition = _animationModule.Animator.GetBoneTransform(HumanBodyBones.Hips).position;
+        Vector3 bodyGroundPoint = new Vector3(bodyPosition.x, Owner.transform.position.y, bodyPosition.z);
+        Vector3 modelStartPosition = model.position;
+        Vector3 modelStartScale = model.localScale;
+
+        Sequence vanish = DOTween.Sequence()
+            .AppendInterval(_deathVanishDelay)
+            .AppendCallback(() => SpawnDeathVFX(bodyGroundPoint))
+            .Append(DOVirtual.Float(0f, 1f, _deathVanishDuration, progress =>
+            {
+                float scale = Mathf.LerpUnclamped(1f, _deathVanishEndScale, progress);
+                model.localScale = modelStartScale * scale;
+                model.position = bodyGroundPoint + (modelStartPosition - bodyGroundPoint) * scale + Vector3.down * (_deathVanishSinkDepth * progress);
+            }).SetEase(_deathVanishEase))
+            .SetLink(Owner.gameObject);
+
+        yield return vanish.WaitForCompletion();
+    }
+
+    private void SpawnDeathVFX(Vector3 position)
+    {
+        Destroy(Instantiate(_deathVFXPrefab, position, _deathVFXPrefab.transform.rotation).gameObject, _deathVFXLifetime);
     }
 }

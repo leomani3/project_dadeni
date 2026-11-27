@@ -159,11 +159,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e75a15e19556cb144b18f912eb124d12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityHealthModule
-  _deathVFXPrefab: {fileID: 0}
+  _deathVFXPrefab: {fileID: 19875214, guid: 146d2ff25be0f824fa285b16b2915ff3, type: 3}
+  _deathVFXLifetime: 3
+  _deathVanishDelay: 0.2
+  _deathVanishDuration: 0.35
+  _deathVanishSinkDepth: 0.8
+  _deathVanishEndScale: 0.5
+  _deathVanishEase: 8
   _damagePunchScale: {x: 0.3, y: -0.2, z: 0}
-  _damagePunchDuration: 0.35
+  _damagePunchDuration: 0.15
   _damagePunchVibrato: 6
-  _damagePunchElasticity: 0.5
+  _damagePunchElasticity: 0.2
   _damageSound: 0
   _deathSound: 0
   _maxHealthFallbackWithoutStatModule: 100
