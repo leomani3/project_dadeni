@@ -132,7 +132,7 @@ namespace Deckbuilder.Player
             CombatDeckView _deckView = m_combatManager.DeckView;
             GridCell _entityCell = CardExecutor.GetEffectiveCell(Owner);
 
-            if (_entityCell == null)
+            if (_entityCell == null || m_combatManager.IsEndTurnQueued)
             {
                 SetMoveModeActive(false);
                 ClearMoveHighlights();

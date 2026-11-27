@@ -42,6 +42,7 @@ namespace Deckbuilder.Combat
         public CombatPhase Phase { get; private set; }
         public Entity ActiveEntity { get; private set; }
         public bool IsPlayerTurn => Phase == CombatPhase.PlayerTurn;
+        public bool IsEndTurnQueued { get; private set; }
 
         private readonly List<Entity> m_enemies = new();
         private readonly List<Entity> m_enemiesTakingTurn = new();
@@ -112,6 +113,7 @@ namespace Deckbuilder.Combat
                 return;
 
             IsCombatRunning = false;
+            IsEndTurnQueued = false;
             SetPhase(CombatPhase.None);
             SetActiveEntity(null);
 
@@ -155,7 +157,6 @@ namespace Deckbuilder.Combat
             m_combatCanvas.onEndTurnClicked -= EndPlayerTurn;
             m_combatCanvas.onEndCombatClicked -= EndCombat;
             m_combatCanvas.onLockPlacementClicked -= LockPlacement;
-            m_combatCanvas.DeckView.onTransfersSettled -= HandleDeckTransfersSettled;
             m_combatCanvas.DeckView.Unbind();
             m_combatCanvas.SetPlacementModeActive(false);
             m_combatCanvas.Close();
@@ -165,12 +166,24 @@ namespace Deckbuilder.Combat
 
         public void EndPlayerTurn()
         {
-            if (!IsPlayerTurn || m_combatCanvas.DeckView.IsTransferring)
+            if (!IsPlayerTurn || IsEndTurnQueued)
                 return;
 
-            SetPhase(CombatPhase.EnemyTurn);
+            IsEndTurnQueued = true;
             m_combatCanvas.DeckView.SetInteractable(false);
             m_combatCanvas.SetEndTurnButtonInteractable(false);
+
+            m_player.TryGetModule(out EntityActionQueueModule _playerActionQueue);
+            _playerActionQueue.Enqueue(new EndTurnAction(this));
+        }
+
+        public IEnumerator PassPlayerTurn()
+        {
+            while (m_combatCanvas.DeckView.IsTransferring)
+                yield return null;
+
+            IsEndTurnQueued = false;
+            SetPhase(CombatPhase.EnemyTurn);
             m_enemyTurnsRoutine = StartCoroutine(PlayEnemyTurns());
         }
 
@@ -284,22 +297,11 @@ namespace Deckbuilder.Combat
             m_deck.DrawTurnHand();
             m_combatCanvas.DeckView.SetInteractable(true);
             m_player.OnTurnStart();
-            m_combatCanvas.SetEndTurnButtonInteractable(!m_combatCanvas.DeckView.IsTransferring);
-        }
-
-        private void HandleDeckTransfersSettled()
-        {
-            if (IsPlayerTurn)
-                m_combatCanvas.SetEndTurnButtonInteractable(true);
+            m_combatCanvas.SetEndTurnButtonInteractable(true);
         }
 
         private IEnumerator PlayEnemyTurns()
         {
-            m_player.TryGetModule(out EntityActionQueueModule _playerActionQueue);
-
-            while (_playerActionQueue.IsProcessing)
-                yield return null;
-
             m_player.OnTurnEnd();
             m_deck.DiscardHand();
 
@@ -408,7 +410,6 @@ namespace Deckbuilder.Combat
 
             m_deck.StartCombat(_playerDeck.Cards, RunRandom.GetStream(RandomChannel.Combat));
             m_combatCanvas.DeckView.Bind(m_deck);
-            m_combatCanvas.DeckView.onTransfersSettled += HandleDeckTransfersSettled;
         }
 
         private void SpawnEnemies(IReadOnlyList<Entity> _enemyPrefabs)

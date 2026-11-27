@@ -25,7 +25,6 @@ public class CombatDeckView : MonoBehaviour
     private static readonly Key[] HotkeyDigitKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9, Key.Digit0 };
     private static readonly Key[] HotkeyNumpadKeys = { Key.Numpad1, Key.Numpad2, Key.Numpad3, Key.Numpad4, Key.Numpad5, Key.Numpad6, Key.Numpad7, Key.Numpad8, Key.Numpad9, Key.Numpad0 };
 
-    public event Action onTransfersSettled;
     public event Action<CardInstance> onUnaffordableCardRejected;
 
     [SerializeField, Required] private Canvas _canvas;
@@ -82,7 +81,6 @@ public class CombatDeckView : MonoBehaviour
     private CardInstance _selectedCard;
     private bool _isInteractable;
     private bool _isArrowOnValidTarget;
-    private bool _wasTransferring;
     private float _nextTransferStartTime;
     private int _availableActionPoints;
 
@@ -144,7 +142,6 @@ public class CombatDeckView : MonoBehaviour
         _draggedView = null;
         _selectedCard = null;
         _isInteractable = false;
-        _wasTransferring = false;
         _targetingArrow.Hide();
     }
 
@@ -204,7 +201,6 @@ public class CombatDeckView : MonoBehaviour
         DespawnUnclaimedDetachedViews();
         _pendingSourcePiles.Clear();
         UpdateTargetingArrow();
-        NotifyTransfersSettled();
     }
 
     private void UpdateHotkeys()
@@ -301,15 +297,6 @@ public class CombatDeckView : MonoBehaviour
     {
         CancelSelection();
         onUnaffordableCardRejected?.Invoke(_card);
-    }
-
-    private void NotifyTransfersSettled()
-    {
-        bool _isTransferring = IsTransferring;
-        if (_wasTransferring && !_isTransferring)
-            onTransfersSettled?.Invoke();
-
-        _wasTransferring = _isTransferring;
     }
 
     private void HandleCardRemoved(CardPile _pile, CardInstance _card)
