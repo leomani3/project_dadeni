@@ -18,6 +18,7 @@ MonoBehaviour:
   m_illustration: {fileID: 21300000, guid: ef180cb082ba7ea42bb91e1bf3dc7b32, type: 3}
   m_castStyle: 1
   m_cost: 1
+  m_costResource: {fileID: 11400000, guid: db9a79edff388044bb5f0e5318e50dd7, type: 2}
   m_exhausts: 0
   m_targetZone:
     m_shape: 2
@@ -29,6 +30,7 @@ MonoBehaviour:
   m_actions:
   - rid: 3017391289448792153
   m_costUpgraded: 3
+  m_costResourceUpgraded: {fileID: 11400000, guid: db9a79edff388044bb5f0e5318e50dd7, type: 2}
   m_exhaustsUpgraded: 0
   m_targetZoneUpgraded:
     m_shape: 2

@@ -25,4 +25,10 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: 72871ada8c1e41ccb3cf2acaa459745f, type: 2}
     upgraded: 0
     copies: 5
+  - card: {fileID: 11400000, guid: e1b0a2334943f6c44ac392ae80518b2d, type: 2}
+    upgraded: 0
+    copies: 2
+  - card: {fileID: 11400000, guid: 04ce310ca6457aa49b083dc308ab1438, type: 2}
+    upgraded: 0
+    copies: 1
   _unlockedByDefault: 1

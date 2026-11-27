@@ -149,13 +149,7 @@ MonoBehaviour:
   _floatingTextPrefab: {fileID: 2260286260642237526, guid: 4e8af34fe59b479cb5845548ad3f60d6, type: 3}
   _textParent: {fileID: 7071472029848722567}
   _configs:
-    keys:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
+    keys: 00000000010000000200000003000000040000000500000006000000
     values:
     - {fileID: 11400000, guid: cdb3af6339353804b9d16b0b6b4fe187, type: 2}
     - {fileID: 11400000, guid: f87e0112c920434db4287c647ab0ebbd, type: 2}
@@ -163,3 +157,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 5e323e0e422c4877ba6c25efb8af1ec5, type: 2}
     - {fileID: 11400000, guid: c0b27acde1734c0eabeba27dbf31b514, type: 2}
     - {fileID: 11400000, guid: 7a518614915d4e1cb40f3655c4d51f07, type: 2}
+    - {fileID: 11400000, guid: 3e7c83f735716b6409995243d5df3fa6, type: 2}

@@ -9,6 +9,7 @@ namespace Deckbuilder.StatusEffects
     {
         public Action<StatusEffect> OnStatusEffectChanged;
         public Action<StatusEffect> OnStatusEffectRemoved;
+        public Action<StatusEffectConfig, int> OnStatusEffectApplied;
 
         private readonly Dictionary<StatusEffectType, StatusEffect> _statusEffects = new Dictionary<StatusEffectType, StatusEffect>();
         private readonly List<StatusEffect> _statusEffectsSnapshot = new List<StatusEffect>();
@@ -28,6 +29,7 @@ namespace Deckbuilder.StatusEffects
             _statusEffects.Clear();
             OnStatusEffectChanged = null;
             OnStatusEffectRemoved = null;
+            OnStatusEffectApplied = null;
         }
 
         public override void OnCombatExit()
@@ -69,6 +71,7 @@ namespace Deckbuilder.StatusEffects
                 statusEffect.SkipNextDecay = true;
 
             AddStacks(statusEffect, stacks);
+            OnStatusEffectApplied?.Invoke(config, stacks);
         }
 
         private bool TryNegateWithArtifact()

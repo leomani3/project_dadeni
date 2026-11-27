@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632f287d3ec204d9b588067fb73a6eed, type: 3}
+  m_Name: CardNock
+  m_EditorClassIdentifier: Assembly-CSharp::Deckbuilder.Cards.CardConfig
+  m_id: card.nock
+  m_title: Nock
+  m_type: 1
+  m_illustration: {fileID: 21300000, guid: cb73d8988f813fa46afca32d589f2d8e, type: 3}
+  m_castStyle: 2
+  m_cost: 1
+  m_costResource: {fileID: 11400000, guid: db9a79edff388044bb5f0e5318e50dd7, type: 2}
+  m_exhausts: 0
+  m_targetZone:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_requiresLineOfSight: 0
+  m_effectZone:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_actions:
+  - rid: 3017391481407144346
+  m_costUpgraded: 1
+  m_costResourceUpgraded: {fileID: 11400000, guid: db9a79edff388044bb5f0e5318e50dd7, type: 2}
+  m_exhaustsUpgraded: 0
+  m_targetZoneUpgraded:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_requiresLineOfSightUpgraded: 0
+  m_effectZoneUpgraded:
+    m_shape: 0
+    m_range: {x: 0, y: 1}
+  m_actionsUpgraded:
+  - rid: 3017391481407144347
+  references:
+    version: 2
+    RefIds:
+    - rid: 3017391481407144346
+      type: {class: GainActionResourceCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+      data:
+        m_targets: 1
+        m_targetTeams: 1
+        m_resource: {fileID: 11400000, guid: 77a6b93b78cdf9a4297c6d52a56c3ec0, type: 2}
+        m_amount: 2
+    - rid: 3017391481407144347
+      type: {class: GainActionResourceCardAction, ns: Deckbuilder.Cards.Actions, asm: Assembly-CSharp}
+      data:
+        m_targets: 1
+        m_targetTeams: 1
+        m_resource: {fileID: 11400000, guid: 77a6b93b78cdf9a4297c6d52a56c3ec0, type: 2}
+        m_amount: 3

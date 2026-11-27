@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Deckbuilder.ActionResources;
 using Deckbuilder.Actions;
 using Deckbuilder.Cards;
 using Deckbuilder.Grid;
@@ -54,8 +55,7 @@ namespace Deckbuilder.Combat
         private CellHighlightSource m_placementCellsHighlight;
         private CellHighlightSource m_placementHoverHighlight;
         private CellHighlightSource m_enemySpawnCellsHighlight;
-        private EntityActionPointModule m_playerActionPoints;
-        private EntityCombatMoverModule m_playerCombatMover;
+        private EntityActionResourceModule m_playerResources;
 
         private void Reset()
         {
@@ -156,6 +156,7 @@ namespace Deckbuilder.Combat
             m_combatCanvas.onEndCombatClicked -= EndCombat;
             m_combatCanvas.onLockPlacementClicked -= LockPlacement;
             m_combatCanvas.DeckView.Unbind();
+            m_combatCanvas.ClearResources();
             m_combatCanvas.SetPlacementModeActive(false);
             m_combatCanvas.Close();
 
@@ -357,37 +358,33 @@ namespace Deckbuilder.Combat
 
         private void BindPlayerResources()
         {
-            m_player.TryGetModule(out m_playerActionPoints);
-            m_player.TryGetModule(out m_playerCombatMover);
+            m_player.TryGetModule(out m_playerResources);
 
-            m_playerActionPoints.OnActionPointsChanged += HandleActionPointsChanged;
-            m_playerCombatMover.OnMovementPointsChanged += HandleMovementPointsChanged;
+            m_combatCanvas.ShowResources(m_playerResources.Resources);
+            m_combatCanvas.DeckView.SetAffordabilityCheck(CanPlayerAfford);
+            m_playerResources.OnResourceChanged += HandlePlayerResourceChanged;
 
-            HandleActionPointsChanged(m_playerActionPoints.RemainingActionPoints, m_playerActionPoints.MaxActionPoints);
-            HandleMovementPointsChanged(m_playerCombatMover.RemainingMovementPoints, m_playerCombatMover.MaxMovementPoints);
+            foreach (ActionResourceConfig _resource in m_playerResources.Resources)
+                HandlePlayerResourceChanged(_resource, m_playerResources.GetRemaining(_resource), m_playerResources.GetMax(_resource));
         }
 
         private void UnbindPlayerResources()
         {
-            if (m_playerActionPoints != null)
-                m_playerActionPoints.OnActionPointsChanged -= HandleActionPointsChanged;
+            if (m_playerResources != null)
+                m_playerResources.OnResourceChanged -= HandlePlayerResourceChanged;
 
-            if (m_playerCombatMover != null)
-                m_playerCombatMover.OnMovementPointsChanged -= HandleMovementPointsChanged;
-
-            m_playerActionPoints = null;
-            m_playerCombatMover = null;
+            m_playerResources = null;
         }
 
-        private void HandleActionPointsChanged(int _remaining, int _max)
+        private bool CanPlayerAfford(CardInstance _card)
         {
-            m_combatCanvas.SetActionPoints(_remaining, _max);
-            m_combatCanvas.DeckView.SetAvailableActionPoints(_remaining);
+            return m_playerResources.CanAfford(_card.CostResource, _card.Cost);
         }
 
-        private void HandleMovementPointsChanged(int _remaining, int _max)
+        private void HandlePlayerResourceChanged(ActionResourceConfig _resource, int _remaining, int _max)
         {
-            m_combatCanvas.SetMovementPoints(_remaining, _max);
+            m_combatCanvas.SetResource(_resource, _remaining, _max);
+            m_combatCanvas.DeckView.RefreshPlayableHighlights();
         }
 
         private void StartDeck()

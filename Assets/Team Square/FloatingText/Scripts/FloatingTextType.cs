@@ -6,4 +6,5 @@ public enum FloatingTextType
     Heal = 3,
     StatusEffect = 4,
     Warning = 5,
+    Block = 6,
 }

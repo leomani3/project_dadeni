@@ -9,9 +9,11 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     [SerializeField] private RectTransform _textParent;
     [SerializeField] private SerializableDictionary<FloatingTextType, FloatingTextConfig> _configs = new SerializableDictionary<FloatingTextType, FloatingTextConfig>();
 
-    public void SpawnWorldText(Vector3 worldPosition, string message, FloatingTextType type)
+    public float SpawnWorldText(Vector3 worldPosition, string message, FloatingTextType type, Color? color = null, float stackOffset = 0f)
     {
-        SpawnText().PlayAtWorldPosition(worldPosition, message, _configs[type]);
+        FloatingTextConfig config = _configs[type];
+        SpawnText().PlayAtWorldPosition(worldPosition, message, config, color ?? config.color, stackOffset);
+        return config.spawnDuration + config.stayDuration + config.despawnDuration;
     }
 
     public void SpawnScreenText(Vector3 screenPosition, string message, FloatingTextType type)

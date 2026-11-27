@@ -82,6 +82,7 @@ GameObject:
   - component: {fileID: 3000000000009999999}
   - component: {fileID: 1959236317963365998}
   - component: {fileID: 7395028461739502816}
+  - component: {fileID: 7222439505754801433}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -235,6 +236,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityCombatMoverModule
   m_moveSpeed: 5
+  m_movementResource: {fileID: 11400000, guid: 66b504c4c963d224b8eaf9e90877dd56, type: 2}
 --- !u!114 &3000000000008888888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,6 +281,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _hudPrefab: {fileID: 8502659694915440801, guid: 57eac4823492486389bc04096a15115e, type: 3}
   _hudAnchor: {fileID: 3126233327352824732}
+  _floatingTextSpacing: 40
+  _floatingTextInterval: 0.05
 --- !u!114 &7395028461739502816
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,6 +295,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7f6d033bb07f6044a301af6fa4b8814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7222439505754801433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3000000000001111111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5900420fad57420c8a564c2d32107938, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityActionResourceModule
+  m_resources:
+  - {fileID: 11400000, guid: 66b504c4c963d224b8eaf9e90877dd56, type: 2}
 --- !u!1 &3000000000012222221
 GameObject:
   m_ObjectHideFlags: 0

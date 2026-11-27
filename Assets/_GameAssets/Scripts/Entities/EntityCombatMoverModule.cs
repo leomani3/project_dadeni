@@ -1,30 +1,30 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Deckbuilder.ActionResources;
 using Deckbuilder.Combat;
 using Deckbuilder.Grid;
-using Stats;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class EntityCombatMoverModule : EntityModule
 {
-    public Action<int, int> OnMovementPointsChanged;
-
     [SerializeField] private float m_moveSpeed = 5f;
+    [SerializeField, Required] private ActionResourceConfig m_movementResource;
 
     public CombatManager CombatManager { get; private set; }
     public ArenaGrid Grid => CombatManager != null ? CombatManager.Grid : null;
     public GridCell CurrentCell { get; private set; }
     public GridCell DestinationCell { get; private set; }
     public bool IsMoving { get; private set; }
-    public int RemainingMovementPoints { get; private set; }
-    public int MaxMovementPoints { get; private set; }
+    public ActionResourceConfig MovementResource => m_movementResource;
+    public int RemainingMovementPoints => m_resourceModule.GetRemaining(m_movementResource);
 
     public GridCell EffectiveCell => IsMoving && DestinationCell != null ? DestinationCell : CurrentCell;
 
     private readonly List<GridCell> m_path = new();
     private EntityAnimationModule m_animationModule;
-    private EntityStatModule m_statModule;
+    private EntityActionResourceModule m_resourceModule;
     private Coroutine m_moveRoutine;
     private bool m_cancelMoveRequested;
 
@@ -33,15 +33,7 @@ public class EntityCombatMoverModule : EntityModule
         base.OnAllModuleInitialized();
 
         Owner.TryGetModule(out m_animationModule);
-        Owner.TryGetModule(out m_statModule);
-    }
-
-    public override void OnTurnStart()
-    {
-        base.OnTurnStart();
-
-        int _max = Mathf.RoundToInt(m_statModule.GetValue(StatType.MovementPoints));
-        SetMovementPoints(_max, _max);
+        Owner.TryGetModule(out m_resourceModule);
     }
 
     public override void OnCombatExit()
@@ -103,7 +95,7 @@ public class EntityCombatMoverModule : EntityModule
         m_path.Clear();
         m_path.AddRange(_path);
 
-        SetMovementPoints(RemainingMovementPoints - _movementCost, MaxMovementPoints);
+        m_resourceModule.TrySpend(m_movementResource, _movementCost);
         DestinationCell = m_path[^1];
         m_cancelMoveRequested = false;
         m_moveRoutine = StartCoroutine(FollowPath());
@@ -119,8 +111,6 @@ public class EntityCombatMoverModule : EntityModule
     public override void Cleanup()
     {
         base.Cleanup();
-
-        OnMovementPointsChanged = null;
 
         if (CurrentCell != null && CurrentCell.Occupant == Owner)
             CurrentCell.ClearOccupant();
@@ -141,14 +131,6 @@ public class EntityCombatMoverModule : EntityModule
         DestinationCell = null;
         IsMoving = false;
         m_cancelMoveRequested = false;
-        SetMovementPoints(0, 0);
-    }
-
-    private void SetMovementPoints(int _remaining, int _max)
-    {
-        RemainingMovementPoints = _remaining;
-        MaxMovementPoints = _max;
-        OnMovementPointsChanged?.Invoke(RemainingMovementPoints, MaxMovementPoints);
     }
 
     private IEnumerator FollowPath()
@@ -164,7 +146,7 @@ public class EntityCombatMoverModule : EntityModule
 
             if (m_cancelMoveRequested)
             {
-                SetMovementPoints(RemainingMovementPoints + m_path.Count - 1 - _i, MaxMovementPoints);
+                m_resourceModule.Gain(m_movementResource, m_path.Count - 1 - _i);
                 break;
             }
         }

@@ -5,7 +5,9 @@ using Deckbuilder.Combat;
 using Deckbuilder.Grid;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Deckbuilder.Player
 {
@@ -39,6 +41,7 @@ namespace Deckbuilder.Player
         private readonly List<GridCell> m_targetCells = new();
         private readonly List<GridCell> m_blockedTargetCells = new();
         private readonly List<GridCell> m_hoveredCells = new();
+        private readonly List<RaycastResult> m_uiRaycastResults = new();
 
         protected override void OnInitialize()
         {
@@ -240,19 +243,23 @@ namespace Deckbuilder.Player
             ClearMoveHighlights();
             ShowLaunchZone(_card, _entityCell);
 
-            bool _canTargetHoveredCell = m_hoveredCell != null
-                && CanAfford(_card)
-                && CardExecutor.CanTarget(m_combatManager, _card, Owner, m_hoveredCell);
-            _deckView.SetArrowOnValidTarget(_canTargetHoveredCell);
+            bool _isLockedOnSelf = IsLockedOnSelf(_entityCell);
+            GridCell _targetCell = _isLockedOnSelf ? _entityCell : m_hoveredCell;
 
-            if (_canTargetHoveredCell)
+            bool _canTargetCell = _targetCell != null
+                && CanAfford(_card)
+                && CardExecutor.CanTarget(m_combatManager, _card, Owner, _targetCell);
+            _deckView.SetArrowOnValidTarget(_canTargetCell);
+            _deckView.SetArrowLockedWorldPoint(_isLockedOnSelf ? GetSelfLockPoint() : null);
+
+            if (_canTargetCell)
             {
                 ZoneDefinition _effectZone = _card.EffectZone;
-                m_grid.GetCellsInZone(m_hoveredCell.Coordinate, _effectZone.Shape, _effectZone.MaxRange, _effectZone.MinRange, m_zoneCells);
+                m_grid.GetCellsInZone(_targetCell.Coordinate, _effectZone.Shape, _effectZone.MaxRange, _effectZone.MinRange, m_zoneCells);
                 m_effectZoneHighlight.Set(m_zoneCells);
 
                 m_hoveredCells.Clear();
-                m_hoveredCells.Add(m_hoveredCell);
+                m_hoveredCells.Add(_targetCell);
                 m_targetCellHighlight.Set(m_hoveredCells);
             }
             else
@@ -271,10 +278,42 @@ namespace Deckbuilder.Player
             }
 
             bool _confirmPressed = Mouse.current.leftButton.wasPressedThisFrame || Mouse.current.leftButton.wasReleasedThisFrame;
-            if (_confirmPressed && _canTargetHoveredCell)
-                PlayCard(_card, m_hoveredCell);
-            else if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (_isLockedOnSelf && IsPointerOverUI())
+                return;
+
+            if (_confirmPressed && _canTargetCell)
+                PlayCard(_card, _targetCell);
+            else if (Mouse.current.leftButton.wasPressedThisFrame && !_isLockedOnSelf)
                 _deckView.CancelSelection();
+        }
+
+        private bool IsLockedOnSelf(GridCell _entityCell)
+        {
+            return m_targetCells.Count == 1 && m_blockedTargetCells.Count == 0 && m_targetCells[0] == _entityCell;
+        }
+
+        private bool IsPointerOverUI()
+        {
+            if (EventSystem.current == null)
+                return false;
+
+            PointerEventData _pointerData = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
+            m_uiRaycastResults.Clear();
+            EventSystem.current.RaycastAll(_pointerData, m_uiRaycastResults);
+
+            foreach (RaycastResult _result in m_uiRaycastResults)
+            {
+                if (_result.module is GraphicRaycaster)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private Vector3 GetSelfLockPoint()
+        {
+            Owner.TryGetModule(out EntityAnimationModule _animationModule);
+            return _animationModule.HitPoint.position;
         }
 
         private void ShowLaunchZone(CardInstance _card, GridCell _entityCell)
@@ -308,9 +347,9 @@ namespace Deckbuilder.Player
 
         private void PlayCard(CardInstance _card, GridCell _targetCell)
         {
-            Owner.TryGetModule(out EntityActionPointModule _actionPoints);
+            Owner.TryGetModule(out EntityActionResourceModule _resources);
 
-            if (!_actionPoints.TrySpend(_card.Cost))
+            if (!_resources.TrySpend(_card.CostResource, _card.Cost))
                 return;
 
             Owner.TryGetModule(out EntityActionQueueModule _queue);
@@ -321,8 +360,8 @@ namespace Deckbuilder.Player
 
         private bool CanAfford(CardInstance _card)
         {
-            Owner.TryGetModule(out EntityActionPointModule _actionPoints);
-            return _actionPoints.CanAfford(_card.Cost);
+            Owner.TryGetModule(out EntityActionResourceModule _resources);
+            return _resources.CanAfford(_card.CostResource, _card.Cost);
         }
 
         private int GetRemainingMovementPoints()

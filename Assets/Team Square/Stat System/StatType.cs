@@ -14,5 +14,6 @@ namespace Stats
         Repetition = 14,
         MovementPoints = 15,
         ActionPoints = 16,
+        MaxArrows = 17,
     }
 }

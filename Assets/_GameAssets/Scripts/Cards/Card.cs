@@ -27,6 +27,7 @@ namespace Deckbuilder.Cards
         [SerializeField, Required] private GameObject _back;
         [SerializeField, Required] private TMP_Text _titleLabel;
         [SerializeField, Required] private TMP_Text _costLabel;
+        [SerializeField, Required] private Image _costIcon;
         [SerializeField, Required] private TMP_Text _descriptionLabel;
         [SerializeField, Required] private TMP_Text _hotkeyLabel;
         [SerializeField, Required] private Image _illustration;
@@ -64,6 +65,7 @@ namespace Deckbuilder.Cards
 
             _titleLabel.text = BuildTitle();
             _costLabel.text = HighlightIfChanged(FormatValue(Instance.Cost), FormatValue(Config.GetCost(false)));
+            _costIcon.color = Instance.CostResource.Color;
             _descriptionLabel.text = BuildDescription();
             _illustration.sprite = Config.Illustration;
             _illustration.enabled = Config.Illustration != null;

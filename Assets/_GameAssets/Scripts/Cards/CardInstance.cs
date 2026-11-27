@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Deckbuilder.ActionResources;
 using Deckbuilder.Cards.Actions;
 
 namespace Deckbuilder.Cards
@@ -11,6 +12,7 @@ namespace Deckbuilder.Cards
         public string Title => Config.Title;
         public CardType Type => Config.Type;
         public int Cost => Config.GetCost(IsUpgraded);
+        public ActionResourceConfig CostResource => Config.GetCostResource(IsUpgraded);
         public bool Exhausts => Config.GetExhausts(IsUpgraded);
         public ZoneDefinition TargetZone => Config.GetTargetZone(IsUpgraded);
         public bool RequiresLineOfSight => Config.GetRequiresLineOfSight(IsUpgraded);

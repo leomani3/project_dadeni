@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Deckbuilder.ActionResources;
 using Deckbuilder.Cards;
 using Deckbuilder.Combat;
 using DG.Tweening;
@@ -18,17 +20,17 @@ public class CombatCanvas : CanvasHandler
     [SerializeField, Required] private CustomButton _lockPlacementButton;
     [SerializeField, Required] private TurnBanner _turnBanner;
     [SerializeField, Required] private CombatDeckView _deckView;
-    [SerializeField, Required] private TMP_Text _actionPointsLabel;
-    [SerializeField, Required] private TMP_Text _movementPointsLabel;
-    [SerializeField] private string _notEnoughActionPointsMessage = "Not enough AP";
-    [SerializeField] private Color _notEnoughActionPointsColor = new Color(1f, 0.28f, 0.22f);
-    [SerializeField, Min(0f)] private float _actionPointsShakeDuration = 0.4f;
-    [SerializeField, Min(0f)] private float _actionPointsShakeStrength = 14f;
-    [SerializeField, Min(1)] private int _actionPointsShakeVibrato = 30;
+    [SerializeField, Required] private RectTransform _resourceLabelContainer;
+    [SerializeField, Required] private TMP_Text _resourceLabelPrefab;
+    [SerializeField, Min(0f)] private float _resourceLabelSpacing = 48f;
+    [SerializeField] private string _notEnoughResourceMessageFormat = "Not enough {0}";
+    [SerializeField] private Color _notEnoughResourceColor = new Color(1f, 0.28f, 0.22f);
+    [SerializeField, Min(0f)] private float _resourceShakeDuration = 0.4f;
+    [SerializeField, Min(0f)] private float _resourceShakeStrength = 14f;
+    [SerializeField, Min(1)] private int _resourceShakeVibrato = 30;
 
-    private Vector2 _actionPointsLabelRestPosition;
-    private Color _actionPointsLabelRestColor;
-    private Sequence _actionPointsShakeTween;
+    private readonly Dictionary<ActionResourceConfig, TMP_Text> _resourceLabels = new Dictionary<ActionResourceConfig, TMP_Text>();
+    private readonly Dictionary<TMP_Text, Sequence> _resourceShakeTweens = new Dictionary<TMP_Text, Sequence>();
 
     public CombatDeckView DeckView => _deckView;
 
@@ -52,43 +54,77 @@ public class CombatCanvas : CanvasHandler
             _spaceButton.Press();
     }
 
-    public void ShowNotEnoughActionPoints()
+    public void ShowResources(IReadOnlyList<ActionResourceConfig> resources)
     {
-        RectTransform _labelTransform = _actionPointsLabel.rectTransform;
+        ClearResources();
 
-        _actionPointsShakeTween?.Kill();
-        _actionPointsLabelRestPosition = _labelTransform.anchoredPosition;
-        _actionPointsLabelRestColor = _actionPointsLabel.color;
-        _actionPointsLabel.color = _notEnoughActionPointsColor;
+        for (int i = 0; i < resources.Count; i++)
+        {
+            ActionResourceConfig resource = resources[i];
+            TMP_Text label = Instantiate(_resourceLabelPrefab, _resourceLabelContainer);
+            label.rectTransform.anchoredPosition = new Vector2(0f, (resources.Count - 1 - i) * _resourceLabelSpacing);
+            label.name = resource.name + "Label";
+            label.color = resource.Color;
+            _resourceLabels.Add(resource, label);
+            SetResource(resource, 0, 0);
+        }
+    }
 
-        _actionPointsShakeTween = DOTween.Sequence()
-            .Join(_labelTransform.DOShakeAnchorPos(_actionPointsShakeDuration, new Vector2(_actionPointsShakeStrength, 0f), _actionPointsShakeVibrato, 0f, false, true))
-            .Join(_actionPointsLabel.DOColor(_actionPointsLabelRestColor, _actionPointsShakeDuration).SetEase(Ease.InQuad))
+    public void ClearResources()
+    {
+        foreach (Sequence tween in _resourceShakeTweens.Values)
+            tween.Kill();
+
+        foreach (TMP_Text label in _resourceLabels.Values)
+            Destroy(label.gameObject);
+
+        _resourceShakeTweens.Clear();
+        _resourceLabels.Clear();
+    }
+
+    public void SetResource(ActionResourceConfig resource, int remaining, int max)
+    {
+        if (_resourceLabels.TryGetValue(resource, out TMP_Text label))
+            label.text = $"{resource.ShortName} {remaining}/{max}";
+    }
+
+    public void ShowNotEnoughResource(ActionResourceConfig resource)
+    {
+        string message = string.Format(_notEnoughResourceMessageFormat, resource.ShortName);
+
+        if (!_resourceLabels.TryGetValue(resource, out TMP_Text label))
+        {
+            FloatingTextManager.Instance.SpawnScreenText(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f), message, FloatingTextType.Warning);
+            return;
+        }
+
+        RectTransform labelTransform = label.rectTransform;
+
+        if (_resourceShakeTweens.TryGetValue(label, out Sequence previousTween))
+            previousTween.Kill();
+
+        Vector2 restPosition = labelTransform.anchoredPosition;
+        Color restColor = resource.Color;
+        label.color = _notEnoughResourceColor;
+
+        _resourceShakeTweens[label] = DOTween.Sequence()
+            .Join(labelTransform.DOShakeAnchorPos(_resourceShakeDuration, new Vector2(_resourceShakeStrength, 0f), _resourceShakeVibrato, 0f, false, true))
+            .Join(label.DOColor(restColor, _resourceShakeDuration).SetEase(Ease.InQuad))
             .OnKill(() =>
             {
-                _labelTransform.anchoredPosition = _actionPointsLabelRestPosition;
-                _actionPointsLabel.color = _actionPointsLabelRestColor;
+                labelTransform.anchoredPosition = restPosition;
+                label.color = restColor;
             });
 
-        Canvas _labelCanvas = _actionPointsLabel.canvas;
-        Camera _labelCamera = _labelCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _labelCanvas.worldCamera;
-        Vector2 _labelScreenPosition = RectTransformUtility.WorldToScreenPoint(_labelCamera, _labelTransform.position);
-        FloatingTextManager.Instance.SpawnScreenText(_labelScreenPosition, _notEnoughActionPointsMessage, FloatingTextType.Warning);
+        Canvas labelCanvas = label.canvas;
+        Camera labelCamera = labelCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : labelCanvas.worldCamera;
+        Vector2 labelScreenPosition = RectTransformUtility.WorldToScreenPoint(labelCamera, labelTransform.position);
+        FloatingTextManager.Instance.SpawnScreenText(labelScreenPosition, message, FloatingTextType.Warning);
     }
 
     public void SetEndTurnButtonInteractable(bool interactable)
     {
         _endTurnButton.SetInteractible(interactable);
-    }
-
-    public void SetActionPoints(int remaining, int max)
-    {
-        _actionPointsLabel.text = $"AP {remaining}/{max}";
-    }
-
-    public void SetMovementPoints(int remaining, int max)
-    {
-        _movementPointsLabel.text = $"MP {remaining}/{max}";
     }
 
     public void SetPlacementModeActive(bool active)
@@ -104,7 +140,7 @@ public class CombatCanvas : CanvasHandler
 
     private void HandleUnaffordableCardRejected(CardInstance card)
     {
-        ShowNotEnoughActionPoints();
+        ShowNotEnoughResource(card.CostResource);
     }
 
     private void HandleEndTurnButtonClicked(int buttonIndex)

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Deckbuilder.ActionResources;
 using Deckbuilder.Cards;
 using Deckbuilder.Cards.Actions;
 using UnityEditor;
@@ -24,6 +25,7 @@ namespace Deckbuilder.EditorTools
         private sealed class Variant
         {
             public int cost;
+            public ActionResourceConfig costResource;
             public bool exhausts;
             public bool requiresLineOfSight;
             public ZoneDefinition targetZone;
@@ -169,6 +171,7 @@ namespace Deckbuilder.EditorTools
             Variant _variant = new Variant
             {
                 cost = _card.GetCost(_upgraded),
+                costResource = _card.GetCostResource(_upgraded),
                 exhausts = _card.GetExhausts(_upgraded),
                 requiresLineOfSight = _card.GetRequiresLineOfSight(_upgraded),
                 targetZone = _card.GetTargetZone(_upgraded),
@@ -198,6 +201,7 @@ namespace Deckbuilder.EditorTools
             string _suffix = _upgraded ? "Upgraded" : string.Empty;
 
             SetField(_card, "m_cost" + _suffix, _variant.cost);
+            SetField(_card, "m_costResource" + _suffix, _variant.costResource);
             SetField(_card, "m_exhausts" + _suffix, _variant.exhausts);
             SetField(_card, "m_requiresLineOfSight" + _suffix, _variant.requiresLineOfSight);
             SetField(_card, "m_targetZone" + _suffix, _variant.targetZone);
@@ -237,7 +241,7 @@ namespace Deckbuilder.EditorTools
         private static void RenderVariant(StringBuilder _builder, string _label, Variant _variant)
         {
             _builder.Append("  ").AppendLine(_label);
-            _builder.Append("    cost     ").AppendLine(_variant.cost.ToString(Invariant));
+            _builder.Append("    cost     ").Append(_variant.cost.ToString(Invariant)).Append(' ').AppendLine(FormatValue(_variant.costResource));
             _builder.Append("    exhausts ").AppendLine(_variant.exhausts ? "yes" : "no");
             _builder.Append("    los      ").AppendLine(_variant.requiresLineOfSight ? "yes" : "no");
             _builder.Append("    target   ").AppendLine(RenderObject(_variant.targetZone));
@@ -353,8 +357,15 @@ namespace Deckbuilder.EditorTools
                 switch (_keyword)
                 {
                     case "cost":
-                        if (ParseValue(_rest, typeof(int), _context, _errors) is int _cost)
+                        SplitFirstWord(_rest, out string _costAmount, out string _costResource);
+
+                        if (ParseValue(_costAmount, typeof(int), _context, _errors) is int _cost)
                             _variant.cost = _cost;
+
+                        if (_costResource.Length == 0)
+                            _errors.Add($"{_context}: 'cost' needs an amount and an action resource, e.g. 'cost 1 ActionPoints'.");
+                        else
+                            _variant.costResource = (ActionResourceConfig)ParseValue(_costResource, typeof(ActionResourceConfig), _context, _errors);
                         break;
 
                     case "exhausts":

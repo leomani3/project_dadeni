@@ -378,11 +378,13 @@ MonoBehaviour:
   _back: {fileID: 4437633241678927738}
   _titleLabel: {fileID: 8297763895473057377}
   _costLabel: {fileID: 3805524561834017254}
+  _costIcon: {fileID: 2892532244984055006}
   _descriptionLabel: {fileID: 3373145564551013758}
   _hotkeyLabel: {fileID: 6057499125177899303}
   _illustration: {fileID: 2892532244896358359}
   _playableHighlight: {fileID: 4165100663361931980}
   _upgradeHighlightColor: {r: 0.36, g: 0.9, b: 0.36, a: 1}
+  _unaffordableCostColor: {r: 1, g: 0.28, b: 0.22, a: 1}
   _flipPortionOfFlight: 0.3
   _shrinkPortionOfFlight: 0.35
 --- !u!225 &2578090608954497647

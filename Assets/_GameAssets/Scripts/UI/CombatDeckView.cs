@@ -82,7 +82,8 @@ public class CombatDeckView : MonoBehaviour
     private bool _isInteractable;
     private bool _isArrowOnValidTarget;
     private float _nextTransferStartTime;
-    private int _availableActionPoints;
+    private Func<CardInstance, bool> _canAfford;
+    private Vector3? _arrowLockedWorldPoint;
 
     public CardInstance HoveredCard => _hoveredView != null ? _hoveredView.Instance : null;
     public CardInstance DraggedCard => _draggedView != null ? _draggedView.Instance : null;
@@ -150,9 +151,9 @@ public class CombatDeckView : MonoBehaviour
         RefreshHandLayout();
     }
 
-    public void SetAvailableActionPoints(int _actionPoints)
+    public void SetAffordabilityCheck(Func<CardInstance, bool> _affordabilityCheck)
     {
-        _availableActionPoints = _actionPoints;
+        _canAfford = _affordabilityCheck;
         RefreshPlayableHighlights();
     }
 
@@ -166,6 +167,11 @@ public class CombatDeckView : MonoBehaviour
     public void SetArrowOnValidTarget(bool _isOnValidTarget)
     {
         _isArrowOnValidTarget = _isOnValidTarget;
+    }
+
+    public void SetArrowLockedWorldPoint(Vector3? _worldPoint)
+    {
+        _arrowLockedWorldPoint = _worldPoint;
     }
 
     private void OnDestroy()
@@ -212,6 +218,12 @@ public class CombatDeckView : MonoBehaviour
     {
         if (Keyboard.current == null)
             return;
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame && (_selectedCard != null || _draggedView != null))
+        {
+            CancelSelection();
+            return;
+        }
 
         for (int i = 0; i < HotkeyDigitKeys.Length; i++)
         {
@@ -295,7 +307,7 @@ public class CombatDeckView : MonoBehaviour
 
     private bool CanAfford(CardInstance _card)
     {
-        return _card.Cost <= _availableActionPoints;
+        return _canAfford(_card);
     }
 
     private void RejectUnaffordableCard(CardInstance _card)
@@ -603,7 +615,7 @@ public class CombatDeckView : MonoBehaviour
         RefreshPlayableHighlights();
     }
 
-    private void RefreshPlayableHighlights()
+    public void RefreshPlayableHighlights()
     {
         foreach (Card _view in _handViews.Values)
         {
@@ -636,7 +648,8 @@ public class CombatDeckView : MonoBehaviour
         float _halfCardHeight = _selectedView.RectTransform.rect.height * _selectedScale * 0.5f;
         Vector2 _arrowStart = _selectedPosition + Vector2.up * _halfCardHeight;
 
-        _targetingArrow.Show(_arrowStart, GetPointerLocalPosition(), _isArrowOnValidTarget);
+        Vector2 _arrowEnd = _arrowLockedWorldPoint.HasValue ? GetWorldPointLocalPosition(_arrowLockedWorldPoint.Value) : GetPointerLocalPosition();
+        _targetingArrow.Show(_arrowStart, _arrowEnd, _isArrowOnValidTarget);
         _targetingArrow.transform.SetAsLastSibling();
     }
 
@@ -650,6 +663,13 @@ public class CombatDeckView : MonoBehaviour
     private Vector2 GetPointerLocalPosition()
     {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_cardContainer, Mouse.current.position.ReadValue(), EventCamera, out Vector2 _localPosition);
+        return _localPosition;
+    }
+
+    private Vector2 GetWorldPointLocalPosition(Vector3 _worldPoint)
+    {
+        Vector2 _screenPoint = CameraManager.Instance.MainCam.WorldToScreenPoint(_worldPoint);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_cardContainer, _screenPoint, EventCamera, out Vector2 _localPosition);
         return _localPosition;
     }
 

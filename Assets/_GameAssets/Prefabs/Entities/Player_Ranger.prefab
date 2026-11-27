@@ -229,6 +229,14 @@ PrefabInstance:
       propertyPath: m_animationSet
       value: 
       objectReference: {fileID: 11400000, guid: 96d1e606204d14140a15dbb4daba201c, type: 2}
+    - target: {fileID: 2000000000012121212, guid: ebe3339144cd241aad3caa8b52e69705, type: 3}
+      propertyPath: m_resources.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2000000000012121212, guid: ebe3339144cd241aad3caa8b52e69705, type: 3}
+      propertyPath: 'm_resources.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 77a6b93b78cdf9a4297c6d52a56c3ec0, type: 2}
     - target: {fileID: 2000000000013333332, guid: ebe3339144cd241aad3caa8b52e69705, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
